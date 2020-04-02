@@ -1,0 +1,7 @@
+Naming conventions:
+	GM: Gabriella Morin
+	DD: Delaney Dunne
+	MLD: Michael Lindner-D'Addario
+
+Contribution list:
+	Designing repository architecture: MLD
