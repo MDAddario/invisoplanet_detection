@@ -1,3 +1,19 @@
+__Program Dependencies__
+
+To run the animations, the Pyglet package must be installed.
+
+1. Via pip:
+
+```
+pip install --upgrade --user pyglet
+```
+
+2. Via conda:
+
+```
+conda install -c conda-forge pyglet
+```
+
 __Invisoplanet Detection Milestones__
 
 _View the preplanning.pdf document for more details_
