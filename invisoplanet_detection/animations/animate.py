@@ -4,7 +4,6 @@ from pyglet.window import key
 from pyglet.window import mouse
 import numpy as np
 from scipy.spatial.transform import Rotation as R
-import os
 
 # Setup window
 try:
@@ -139,21 +138,23 @@ def planet_creator(batch, position_data, mass, color='grey'):
 	vertex_list = batch.add_indexed(len(vertices) // 3, GL_QUADS, group, indices, ("v3f/dynamic", vertices), ("n3f/dynamic", normals))
 
 	# Create object
-	return Planet(vertex_list, position_data, mass)
+	return Planet(batch, vertex_list, position_data, mass, color)
 
 
 # Planet object that holds position data and mass data
 class Planet:
 
 	mass_ratio = 1
-	spin_ratio = 1
+	spin_ratio = 100
 
 	# Constructor
-	def __init__(self, vertex_list, position_data, mass):
+	def __init__(self, batch, vertex_list, position_data, mass, color):
 		# Store the instance attributes
+		self.batch = batch
 		self.vertex_list = vertex_list
 		self.position_data = position_data
 		self.mass = mass
+		self.color = color
 
 		# Extract a deepcopy of vertices formatted as Nx3 array
 		self.vertices = []
@@ -171,11 +172,29 @@ class Planet:
 
 		# Initialize position and size
 		self.update(dt=0)
-		self.rescale(self.mass * self.spin_ratio)
+
+		# Trace the trajectory
+		if self.mass > 0:
+			self.rescale(self.mass * self.mass_ratio)
+			self._trace_trajectory()
 
 	# Destructor
 	def __del__(self):
 		self.vertex_list.delete()
+
+	# Plot n little boxes along the way of the trajectory
+	def _trace_trajectory(self, n=30, mini_mass=0.3, spin_ratio=-3):
+
+		# Determine the indices of the locations
+		indices = np.linspace(0, len(self.position_data), num=n, endpoint=False)
+		self.trajectory_points = []
+
+		# At each position, make a baby cube
+		for index in np.rint(indices).astype(int):
+			position = self.position_data[index]
+			self.trajectory_points.append(planet_creator(batch, [position], -1, self.color))
+			self.trajectory_points[-1].rescale(mini_mass)
+			self.trajectory_points[-1].spin_ratio *= spin_ratio
 
 	# Determine model center from the vertices
 	def _compute_center(self):
@@ -224,9 +243,6 @@ class Planet:
 
 	# Rotate object about center
 	def rotate_degrees(self, axis, angle):
-		# Check axis makes sense
-		if axis not in "xyz":
-			raise ValueError("Rotation axis must be 'x', 'y', or 'z'.")
 
 		# Build rotation object
 		r = R.from_euler(axis, angle, degrees=True)
@@ -360,25 +376,26 @@ if __name__ == "__main__":
 	pyglet.clock.schedule(update)
 
 	# Initialize global variables for camera rotation and translation
-	rx = ry = rz = dx = 0
+	ry = rz = dx = 0
+	rx = -60
 	dy = -2
-	dz = -15
+	dz = -40
 
 	# Camera translation speed
 	cam_rate = 0.7
 
 	# Create position data
 	parameter = np.linspace(0, 1, num=120)
-	p1_x_pos = 10 * np.cos(2 * np.pi * parameter) - 5
-	p1_y_pos = 10 * np.sin(2 * np.pi * parameter) - 5
+	p1_x_pos = 10 * np.cos(2 * np.pi * parameter - np.pi/4) - 5
+	p1_y_pos = 10 * np.sin(2 * np.pi * parameter - np.pi/4) - 5
 	p1_z_pos = np.zeros(len(parameter))
 
 	p1_pos = []
 	for x, y, z in zip(p1_x_pos, p1_y_pos, p1_z_pos):
 		p1_pos.append([x, y, z])
 
-	p2_x_pos = -10 * np.sin(2 * np.pi * parameter) + 5
-	p2_y_pos = -10 * np.cos(2 * np.pi * parameter) + 5
+	p2_x_pos = -10 * np.sin(2 * np.pi * parameter + np.pi) + 5
+	p2_y_pos = -10 * np.cos(2 * np.pi * parameter + np.pi) + 5
 	p2_z_pos = np.zeros(len(parameter))
 
 	p2_pos = []
@@ -396,6 +413,8 @@ if __name__ == "__main__":
 	# Keep track of all the active models
 	object_list = []
 	object_list.extend([p1, p2])
+	object_list.extend(p1.trajectory_points)
+	object_list.extend(p2.trajectory_points)
 
 	# Run the animation!
 	pyglet.app.run()
