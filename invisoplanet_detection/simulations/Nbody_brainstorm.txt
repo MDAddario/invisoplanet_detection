@@ -1,0 +1,22 @@
+N-body simulation code flow:
+
+Initialize - set up ICs x_ij, v_ij (phase space) for N + m unknown bodies, masses M_i for N + m bodies
+    - i is body index, j is dimension index
+    - define class to hold info abt bodies
+
+    PASS:
+
+    RETURN:
+
+
+Single Iteration
+
+    PASS:
+
+    RETURN:
+
+Wrapper to iterate Niter times
+
+    PASS:
+
+    RETURN:
