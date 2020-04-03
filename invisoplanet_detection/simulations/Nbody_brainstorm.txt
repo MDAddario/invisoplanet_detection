@@ -1,10 +1,14 @@
-N-body simulation code flow:
+PN-body simulation code flow:
 
 - SIMPLE DETERMINISTIC HAMILTONIAN vs MC?
 - DO WE ASSUME WE'RE STARTING IN EQM?
     - yes: any observations we have of grav. bound bodies will be at some point far into their evolution, so nature will
       have equilibrated them for us already
     - actually just ignore this - just do a straightforward pair force calculation
+
+DEFINE unit for mass, position RIGHT AWAY
+    - earth masses (0.1 - 10 0000)?
+    - AU for distance
 
 SYSTEM OF 4n FIRST ORDER DIFFERENTIAL EQUATIONS, WITH 4n INITIAL CONDITIONS
 
@@ -25,7 +29,7 @@ Define class to hold info abt BODIES
 
 Define class to hold PHASE SPACE as a whole for an instant in time
     - should have time since t0 included, and all body classes
-    - also some sort of different subclass for Fij matrix?
+    - also some sort of different subclass for Fij (force on body i from body j) matrix?
     - function: calculate the center of mass of this system
     - function: redefine all positions and velocities in terms of CoM
     - function: calculate the Fij matrix for the system at this instant
@@ -67,7 +71,7 @@ SINGLE ITERATION
       (just a matrix of Fij)
 
     - THEN, based on this force matrix, calculate where the bodies will be after t time
-        - need integrator over the time interval dt passed
+        - need integrator over the time interval dt passed (don't actually integrate)
         - return new positions and velocities
 
     - use 2D cartesian coordinates (assume problem is confined to the plane)
@@ -85,15 +89,18 @@ SINGLE ITERATION
 
 WRAPPER TO ITERATE N_iter TIMES
 
+- length of time
+
     PASS: initial phase space, number of iterations, time interval dt
 
     RETURN: final phase space
 
     - just loop through the single iteration repeatedly
-    - track all changes through time for future graphing, animation
+    - after each step, print the time and position information to a file
 
     TESTS:
         - check for NaNs
+        - check a file is created
         - make sure none of the bodies are stacked on top of each other
         - make sure none of the bodies are stacked on top of each other
         - make sure none of the masses have changed
