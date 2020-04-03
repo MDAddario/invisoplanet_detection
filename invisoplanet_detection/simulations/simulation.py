@@ -36,9 +36,11 @@ class Body:
         self.velocity = v
         self.mass = m
 
+    # find the pair gravitational force acting on this body from a single other body
     def __pairforce__(self):
         pass
 
+    # find the total force acting on this body from all other bodies
     def __totalforce__(self):
         pass
 
@@ -63,3 +65,32 @@ class PhaseSpace:
     # calculate the matrix of all pair forces for the system at this instant
     def __forcematrix__(self):
         pass
+
+
+
+# set up the system to begin the iterations
+def initialize_simulation(icfile):
+
+    # read in initial conditions from an external file
+
+    # store them in body classes
+
+    # read in masses from external file
+
+    # store them in body classes
+
+    # define the initial phase space class
+
+    # recenter all coordinates with respect to the center of mass
+
+    pass
+
+def iterate():
+
+    pass
+
+def simulate():
+
+    pass
+
+    #
