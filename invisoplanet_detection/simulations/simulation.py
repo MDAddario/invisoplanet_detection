@@ -11,17 +11,19 @@ class Vector:
         # store the instance attributes
         self.x = x
         self.y = y
+        self.vector = np.array((x,y))
 
     # change the origin of the coordinate system in which the vector is defined
     # newcenter should be a member of the vector class
-    def __recenter__(self, newcenter):
+    def recenter(self, newcenter):
         pass
 
-    def __scalardistance__(self):
-        pass
+    # return the scalar distance between the vector and another
+    def scalardistance(self, v2):
+        diff = self.vector - v2.vector
+        return np.sqrt(np.sum(diff ** 2))
 
-    def __vectorsum__(self):
-        pass
+
 
 
 
@@ -67,7 +69,6 @@ class PhaseSpace:
         pass
 
 
-
 # set up the system to begin the iterations
 def initialize_simulation(icfile):
 
@@ -85,9 +86,11 @@ def initialize_simulation(icfile):
 
     pass
 
+
 def iterate():
 
     pass
+
 
 def simulate():
 
