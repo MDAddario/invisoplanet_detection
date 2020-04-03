@@ -404,7 +404,7 @@ if __name__ == "__main__":
 
 	# Set masses
 	p1_mass = 4
-	p2_mass = 7
+	p2_mass = p1_mass
 
 	# Create planet models
 	p1 = planet_creator(batch, p1_pos, p1_mass, "red")
@@ -413,8 +413,10 @@ if __name__ == "__main__":
 	# Keep track of all the active models
 	object_list = []
 	object_list.extend([p1, p2])
-	object_list.extend(p1.trajectory_points)
-	object_list.extend(p2.trajectory_points)
+
+	# Animate the trajectories
+	#object_list.extend(p1.trajectory_points)
+	#object_list.extend(p2.trajectory_points)
 
 	# Run the animation!
 	pyglet.app.run()
