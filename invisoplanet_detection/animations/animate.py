@@ -46,14 +46,7 @@ def setup():
 
 
 # Create a planet as a box
-def planet_creator(batch, color="red"):
-	# Define center and size
-	size = np.array([1, 1, 1])
-	center = np.array([0, 0, 0])
-
-	# Offset parameter
-	offset = center - size / 2
-
+def planet_creator(batch, position_data, mass, color='grey'):
 	# Create the vertex and normal arrays
 	vertices = []
 	normals = []
@@ -64,63 +57,61 @@ def planet_creator(batch, color="red"):
 	z_normal = np.array([0.1, 0.1, 0.98])
 
 	# Front face
-	vertices.extend(np.array([0, 0, 1] * size + offset))
-	vertices.extend(np.array([1, 0, 1] * size + offset))
-	vertices.extend(np.array([1, 1, 1] * size + offset))
-	vertices.extend(np.array([0, 1, 1] * size + offset))
+	vertices.extend(np.array([0, 0, 1]))
+	vertices.extend(np.array([1, 0, 1]))
+	vertices.extend(np.array([1, 1, 1]))
+	vertices.extend(np.array([0, 1, 1]))
 
 	for i in range(4):
 		normals.extend(z_normal)
 
 	# Back face
-	vertices.extend(np.array([0, 0, 0] * size + offset))
-	vertices.extend(np.array([0, 1, 0] * size + offset))
-	vertices.extend(np.array([1, 1, 0] * size + offset))
-	vertices.extend(np.array([1, 0, 0] * size + offset))
+	vertices.extend(np.array([0, 0, 0]))
+	vertices.extend(np.array([0, 1, 0]))
+	vertices.extend(np.array([1, 1, 0]))
+	vertices.extend(np.array([1, 0, 0]))
 
 	for i in range(4):
 		normals.extend(-z_normal)
 
 	# Top face
-	vertices.extend(np.array([0, 1, 0] * size + offset))
-	vertices.extend(np.array([0, 1, 1] * size + offset))
-	vertices.extend(np.array([1, 1, 1] * size + offset))
-	vertices.extend(np.array([1, 1, 0] * size + offset))
+	vertices.extend(np.array([0, 1, 0]))
+	vertices.extend(np.array([0, 1, 1]))
+	vertices.extend(np.array([1, 1, 1]))
+	vertices.extend(np.array([1, 1, 0]))
 
 	for i in range(4):
 		normals.extend(y_normal)
 
 	# Bot face
-	vertices.extend(np.array([0, 0, 0] * size + offset))
-	vertices.extend(np.array([1, 0, 0] * size + offset))
-	vertices.extend(np.array([1, 0, 1] * size + offset))
-	vertices.extend(np.array([0, 0, 1] * size + offset))
+	vertices.extend(np.array([0, 0, 0]))
+	vertices.extend(np.array([1, 0, 0]))
+	vertices.extend(np.array([1, 0, 1]))
+	vertices.extend(np.array([0, 0, 1]))
 
 	for i in range(4):
 		normals.extend(-y_normal)
 
 	# Right face
-	vertices.extend(np.array([1, 0, 0] * size + offset))
-	vertices.extend(np.array([1, 1, 0] * size + offset))
-	vertices.extend(np.array([1, 1, 1] * size + offset))
-	vertices.extend(np.array([1, 0, 1] * size + offset))
+	vertices.extend(np.array([1, 0, 0]))
+	vertices.extend(np.array([1, 1, 0]))
+	vertices.extend(np.array([1, 1, 1]))
+	vertices.extend(np.array([1, 0, 1]))
 
 	for i in range(4):
 		normals.extend(x_normal)
 
 	# Left face
-	vertices.extend(np.array([0, 0, 0] * size + offset))
-	vertices.extend(np.array([0, 0, 1] * size + offset))
-	vertices.extend(np.array([0, 1, 1] * size + offset))
-	vertices.extend(np.array([0, 1, 0] * size + offset))
+	vertices.extend(np.array([0, 0, 0]))
+	vertices.extend(np.array([0, 0, 1]))
+	vertices.extend(np.array([0, 1, 1]))
+	vertices.extend(np.array([0, 1, 0]))
 
 	for i in range(4):
 		normals.extend(-x_normal)
 
 	# Do the indices too
-	indices = []
-	for i in range(len(vertices)):
-		indices.append(i)
+	indices = np.arange(len(vertices))
 
 	# Select color
 	if color == 'red':
@@ -148,16 +139,21 @@ def planet_creator(batch, color="red"):
 	vertex_list = batch.add_indexed(len(vertices) // 3, GL_QUADS, group, indices, ("v3f/dynamic", vertices), ("n3f/dynamic", normals))
 
 	# Create object
-	return StaticNoClipModel(vertex_list)
+	return Planet(vertex_list, position_data, mass)
 
 
-# Static model that does not check for collisions with environment
-class StaticNoClipModel:
+# Planet object that holds position data and mass data
+class Planet:
+
+	mass_ratio = 1
+	spin_ratio = 1
 
 	# Constructor
-	def __init__(self, vertex_list):
+	def __init__(self, vertex_list, position_data, mass):
 		# Store the instance attributes
 		self.vertex_list = vertex_list
+		self.position_data = position_data
+		self.mass = mass
 
 		# Extract a deepcopy of vertices formatted as Nx3 array
 		self.vertices = []
@@ -171,6 +167,11 @@ class StaticNoClipModel:
 
 		# Compute transformation center
 		self.center = self._compute_center()
+		self.frame = 0
+
+		# Initialize position and size
+		self.update(dt=0)
+		self.rescale(self.mass * self.spin_ratio)
 
 	# Destructor
 	def __del__(self):
@@ -241,6 +242,19 @@ class StaticNoClipModel:
 	# Set the position of the model
 	def set_position(self, position):
 		self._translate_vertices(position - self.center)
+
+	# Update the model every frame
+	def update(self, dt):
+		# Update position
+		self.set_position(self.position_data[self.frame])
+		self.frame += 1
+
+		# Wrap frame counter
+		if self.frame == len(self.position_data):
+			self.frame = 0
+
+		# Rotate body
+		self.rotate_degrees('z', dt * self.spin_ratio)
 
 
 # Take care of camera movement
@@ -326,10 +340,9 @@ def on_mouse_scroll(x, y, scroll_x, scroll_y):
 
 # Update every frame
 def update(dt):
-	pass
 	# Update all mobile objects
-	#for obj in object_list:
-	#	obj.update(dt)
+	for obj in object_list:
+		obj.update(dt)
 
 
 # The main attraction
@@ -354,15 +367,31 @@ if __name__ == "__main__":
 	# Camera translation speed
 	cam_rate = 0.7
 
-	# Create planet models
-	p1 = planet_creator(batch, "red")
-	p2 = planet_creator(batch, "blue")
+	# Create position data
+	parameter = np.linspace(0, 1, num=120)
+	p1_x_pos = 10 * np.cos(2 * np.pi * parameter) - 5
+	p1_y_pos = 10 * np.sin(2 * np.pi * parameter) - 5
+	p1_z_pos = np.zeros(len(parameter))
 
-	# Rescale and reposition the planets
-	p1.rescale(14)
-	p2.rescale(5)
-	p1.set_position([-10, -10, -10])
-	p2.set_position([5, 5, 5])
+	p1_pos = []
+	for x, y, z in zip(p1_x_pos, p1_y_pos, p1_z_pos):
+		p1_pos.append([x, y, z])
+
+	p2_x_pos = -10 * np.sin(2 * np.pi * parameter) + 5
+	p2_y_pos = -10 * np.cos(2 * np.pi * parameter) + 5
+	p2_z_pos = np.zeros(len(parameter))
+
+	p2_pos = []
+	for x, y, z in zip(p2_x_pos, p2_y_pos, p2_z_pos):
+		p2_pos.append([x, y, z])
+
+	# Set masses
+	p1_mass = 4
+	p2_mass = 7
+
+	# Create planet models
+	p1 = planet_creator(batch, p1_pos, p1_mass, "red")
+	p2 = planet_creator(batch, p2_pos, p2_mass, "blue")
 
 	# Keep track of all the active models
 	object_list = []
