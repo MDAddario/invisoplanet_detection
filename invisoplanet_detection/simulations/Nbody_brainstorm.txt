@@ -1,16 +1,36 @@
 N-body simulation code flow:
 
-Initialize - set up ICs x_ij, v_ij (phase space) for N + m unknown bodies, masses M_i for N + m bodies
+- SIMPLE DETERMINISTIC HAMILTONIAN vs MCMC?
+
+
+
+Define class to deal with vectors
+    - ??
+    - ??
+
+Define class to hold info abt bodies
+    - position (as an x,y vector)
+    - velocity (as an x,y vector)
+    - mass (in some arbitrary units (solar masses? easier not to have to worry about massive numbers)
+        - we'll treat these as point masses
+
+INITIALIZE
+
+    PASS: initial phase space, initial masses
+
+    RETURN: information correctly stored in the right classes?
+
+    - set up ICs x_ij, v_ij (phase space) for N + m unknown bodies, masses M_i for N + m bodies
     - i is body index, j is dimension index
-    - define class to hold info abt bodies
-    - zero the coordinate system to the initial center of mass
 
-    PASS:
+    optional:
+    - zero the coordinate system to the initial center of mass and adjust coordinates? (might help make things tidy)
+        x,y positions defined in terms of this initial CoM
 
-    RETURN:
+    TESTS:
 
 
-Single Iteration
+SINGLE ITERATION
 
     PASS: bodies, time interval
 
@@ -19,13 +39,26 @@ Single Iteration
     - based on current positions of bodies, calculate gravitational field
     - based on gravitational field, calculate where the bodies will be after t time
     - use 2D cartesian coordinates (assume problem is confined to the plane)
-    - some sort of array of PDEs and an integrator?
+    - some sort of array of PDEs and an integrator to solve them
 
-Wrapper to iterate Niter times
+    - this step is going to need to be optimized as much as possible
+    - boundary conditions?
+    - values will stay in some sort of 'rest frame'
+
+        TESTS:
+
+WRAPPER TO ITERATE N_iter TIMES
 
     PASS:
 
     RETURN:
+
+    TESTS:
+
+
+
+
+- first test of complete simulation: kepler problem (single planet orbiting around very massive sun)
 
 OBJECT-ORIENTED PROGRAMMING:
 - define CLASSES - user-defined data structures (for body: mass, position, and velocity?)
