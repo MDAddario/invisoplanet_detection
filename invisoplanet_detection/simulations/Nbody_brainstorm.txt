@@ -9,22 +9,27 @@ N-body simulation code flow:
 SYSTEM OF 4n FIRST ORDER DIFFERENTIAL EQUATIONS, WITH 4n INITIAL CONDITIONS
 
 
-Define class to deal with vectors
+Define class to deal with VECTORS
     - cross and dot products?
     - function: scalar distance between two vectors
     - function: vector sum
+    - function: change of coordinates
 
-Define class to hold info abt bodies
+Define class to hold info abt BODIES
     - position (as an x,y vector)
     - velocity (as an x,y vector)
     - mass (in some arbitrary units (solar masses? easier not to have to worry about massive numbers)
         - we'll treat these as point masses
+    - function: calculate the force on this body from a single other body
+    - function: calculate the force on this body from all other bodies using the previous function?
 
-function to calculate the center of mass of a system
+Define class to hold PHASE SPACE as a whole for an instant in time
+    - should have time since t0 included, and all body classes
+    - also some sort of different subclass for Fij matrix?
+    - function: calculate the center of mass of this system
+    - function: redefine all positions and velocities in terms of CoM
+    - function: calculate the Fij matrix for the system at this instant
 
-function to calculate the force on one body from a single other body
-
-some sort of class for holding the system of EoMs? Fij matrix?
 
 
 INITIALIZE
@@ -36,7 +41,6 @@ INITIALIZE
     - set up ICs x_ij, v_ij (phase space) for N + m unknown bodies, masses M_i for N + m bodies
     - i is body index, j is dimension index
 
-    optional:
     - zero the coordinate system to the initial center of mass and adjust coordinates?
         - need x,y positions and velocities defined in terms of this initial CoM
 
@@ -66,7 +70,7 @@ SINGLE ITERATION
     - this step is going to need to be optimized as much as possible
     - boundary conditions?
 
-        TESTS:
+    TESTS:
 
 WRAPPER TO ITERATE N_iter TIMES
 
@@ -75,6 +79,7 @@ WRAPPER TO ITERATE N_iter TIMES
     RETURN: final phase space
 
     - just loop through the single iteration repeatedly
+    - track all changes through time for future graphing, animation
 
     TESTS:
 
