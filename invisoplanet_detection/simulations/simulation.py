@@ -11,17 +11,20 @@ class Vector:
         # store the instance attributes
         self.x = x
         self.y = y
-        self.vector = np.array((x,y))
-
-    # change the origin of the coordinate system in which the vector is defined
-    # newcenter should be a member of the vector class
-    def recenter(self, newcenter):
-        pass
+        self.vector = np.array((x, y))
 
     # return the scalar distance between the vector and another
-    def scalardistance(self, v2):
-        diff = self.vector - v2.vector
+    def scalardistance(self, vec2):
+
+        diff = self.vector - vec2.vector
         return np.sqrt(np.sum(diff ** 2))
+
+    # change the origin of the coordinate system in which the vector is defined
+    # newcenter should be a member of the vector class - vector pointing to origin of the
+    # new coordinate system from the origin of the old system
+    def recenter(self, newcenter):
+
+        return self.vector - newcenter.vector
 
 
 
@@ -30,17 +33,27 @@ class Vector:
 
 class Body:
 
+    # units involved
+    m_earth = 5.972e24 # kg
+    AU = 1.495979e11 # m
+    # gravitational constant in these units
+    G = 6.67408e-11 * m_earth ** 2 / AU ** 2
+
     # construct
     def __init__(self, q, v, m):
 
         # store the instance attributes
-        self.position = q
+        self.position = Vector(q)
         self.velocity = v
         self.mass = m
 
+
     # find the pair gravitational force acting on this body from a single other body
-    def __pairforce__(self):
-        pass
+    def pairforce(self, b2):
+
+        F = Body.G * self.mass * b2.mass * (self.position.vector - b2.position.vector)
+        F = F / self.position.scalardistance(b2.position) ** 3
+        return F
 
     # find the total force acting on this body from all other bodies
     def __totalforce__(self):
