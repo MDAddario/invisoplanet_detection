@@ -34,13 +34,10 @@ def on_draw():
 # One time setup
 def setup():
 	# Background color and rendering optimizations
-	glClearColor(1, 1, 1, 1)
+	glClearColor(0.1, 0.1, 0.1, 1)
 	glColor3f(1, 0, 0)
 	glEnable(GL_DEPTH_TEST)
 	glEnable(GL_CULL_FACE)
-
-	# Enable wireframe view
-	# glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
 	# Simple light setup
 	glEnable(GL_LIGHTING)
@@ -48,90 +45,11 @@ def setup():
 	glEnable(GL_LIGHT1)
 
 
-# Create vertex list from vertices, normals, indices and all that good stuff
-def create_vertex_list(batch, vertices, normals, indices, color, render_mode=GL_TRIANGLES,
-                       vertex_format="static", normal_format="static"):
-	# Select color
-	if color == 'red':
-		diffuse = [1.0, 0.0, 0.0, 1.0]
-	elif color == 'green':
-		diffuse = [0.0, 1.0, 0.0, 1.0]
-	elif color == 'blue':
-		diffuse = [0.0, 0.0, 1.0, 1.0]
-	elif color == 'yellow':
-		diffuse = [1.0, 1.0, 0.0, 1.0]
-	elif color == 'purple':
-		diffuse = [0.5, 0.0, 0.3, 1.0]
-	else:
-		diffuse = [0.0, 0.0, 0.0, 1.0]
-
-	# Configure formats
-	vertex_format = "v3f/" + vertex_format
-	normal_format = "n3f/" + normal_format
-
-	# Create a material and group for the model
-	ambient = [0.5, 0.0, 0.3, 1.0]
-	specular = [1.0, 1.0, 1.0, 1.0]
-	emission = [0.0, 0.0, 0.0, 1.0]
-	shininess = 50
-	material = pyglet.model.Material("", diffuse, ambient, specular, emission, shininess)
-	group = pyglet.model.MaterialGroup(material=material)
-
-	return batch.add_indexed(len(vertices) // 3,
-	                         render_mode,
-	                         group,
-	                         indices,
-	                         (vertex_format, vertices),
-	                         (normal_format, normals))
-
-
-# Create two floating triangles
-def triangle_practice(batch):
-	size = 1.5
-
-	# Create the vertex and normal arrays
-	vertices = []
-	normals = []
-
-	# Populate the vertices array
-	vertices.extend([-size, 0, 0])
-	vertices.extend([-size, -size / 5, 0])
-	vertices.extend([-0, -0, 0])
-
-	vertices.extend([+size, -size / 5, 0])
-	vertices.extend([+size, 0, 0])
-	vertices.extend([+0, +0, 0])
-
-	# Populate the normals array
-	z_normal = [0.1, 0.1, 0.98]
-
-	for i in range(6):
-		normals.extend(z_normal)
-
-	# Create a list of triangle indices
-	indices = []
-	indices.extend([0, 1, 2])
-	indices.extend([3, 4, 5])
-	indices.extend([0, 2, 1])
-	indices.extend([3, 5, 4])
-
-	return create_vertex_list(batch, vertices, normals, indices, "red",
-	                          GL_TRIANGLES, "static", "static")
-
-
-# Create floating rectangles
-def box_creator(batch, size, center, color, vertex_format, normal_format):
-	# Convert to array objects
-	size = np.asarray(size)
-	center = np.asarray(center)
-
-	# Error check
-	if np.any(size <= 0):
-		raise ValueError("Size values must be strictly positive")
-	if size.shape != (3,):
-		raise ValueError("Size must be a 1D array, 3 in length")
-	if center.shape != (3,):
-		raise ValueError("Center must be a 1D array, 3 in length")
+# Create a planet as a box
+def planet_creator(batch, color="red"):
+	# Define center and size
+	size = np.array([1, 1, 1])
+	center = np.array([0, 0, 0])
 
 	# Offset parameter
 	offset = center - size / 2
@@ -204,48 +122,42 @@ def box_creator(batch, size, center, color, vertex_format, normal_format):
 	for i in range(len(vertices)):
 		indices.append(i)
 
-	return create_vertex_list(batch, vertices, normals, indices, color,
-	                          GL_QUADS, vertex_format, normal_format)
+	# Select color
+	if color == 'red':
+		diffuse = [1.0, 0.0, 0.0, 1.0]
+	elif color == 'green':
+		diffuse = [0.0, 1.0, 0.0, 1.0]
+	elif color == 'blue':
+		diffuse = [0.0, 0.0, 1.0, 1.0]
+	elif color == 'yellow':
+		diffuse = [1.0, 1.0, 0.0, 1.0]
+	elif color == 'purple':
+		diffuse = [0.5, 0.0, 0.3, 1.0]
+	else:
+		diffuse = [0.0, 0.0, 0.0, 1.0]
 
+	# Create a material and group for the model
+	ambient = [0.5, 0.0, 0.3, 1.0]
+	specular = [1.0, 1.0, 1.0, 1.0]
+	emission = [0.0, 0.0, 0.0, 1.0]
+	shininess = 50
+	material = pyglet.model.Material("", diffuse, ambient, specular, emission, shininess)
+	group = pyglet.model.MaterialGroup(material=material)
 
-# Create a set of vertex lists for battlefield stage
-def battlefield_creator(batch, color="blue"):
-	# Keep track of all models
-	model_list = []
+	# Create vertex list
+	vertex_list = batch.add_indexed(len(vertices) // 3, GL_QUADS, group, indices, ("v3f/dynamic", vertices), ("n3f/dynamic", normals))
 
-	# Platform dimensions
-	base_size = [16.0, 0.8, 3.0]
-	base_center = [0.0, 0.0, 0.0]
-	plat_size = [4.0, 0.3, 2.5]
-	left_center = [-5.0, 3.0, 0.0]
-	right_center = [5.0, 3.0, 0.0]
-	top_center = [0.0, 5.0, 0.0]
-
-	# Create all vertex_lists and use them to create models
-	model_list.append(StaticNoClipModel(box_creator(batch, base_size, base_center,
-	                                                color, "static", "static"),
-	                                    is_platform=False))
-	model_list.append(StaticNoClipModel(box_creator(batch, plat_size, left_center,
-	                                                color, "static", "static"),
-	                                    is_platform=True))
-	model_list.append(StaticNoClipModel(box_creator(batch, plat_size, right_center,
-	                                                color, "static", "static"),
-	                                    is_platform=True))
-	model_list.append(StaticNoClipModel(box_creator(batch, plat_size, top_center,
-	                                                color, "static", "static"),
-	                                    is_platform=True))
-
-	return model_list
+	# Create object
+	return StaticNoClipModel(vertex_list)
 
 
 # Static model that does not check for collisions with environment
 class StaticNoClipModel:
 
 	# Constructor
-	def __init__(self, vertex_list, is_platform=False):
+	def __init__(self, vertex_list):
 		# Store the instance attributes
 		self.vertex_list = vertex_list
-		self.is_platform = is_platform
 
 		# Extract a deepcopy of vertices formatted as Nx3 array
 		self.vertices = []
@@ -257,9 +169,8 @@ class StaticNoClipModel:
 		self.normals.extend(self.vertex_list.normals)
 		self.normals = np.reshape(self.normals, (-1, 3))
 
-		# Compute transformation center and Environment Collision Box dimensions
+		# Compute transformation center
 		self.center = self._compute_center()
-		self.ecb_dims = self._compute_ecb_dims()
 
 	# Destructor
 	def __del__(self):
@@ -268,10 +179,6 @@ class StaticNoClipModel:
 	# Determine model center from the vertices
 	def _compute_center(self):
 		return (np.max(self.vertices, axis=0) + np.min(self.vertices, axis=0)) / 2
-
-	# Determine ecb dimensions from the vertices
-	def _compute_ecb_dims(self):
-		return (np.max(self.vertices, axis=0) - np.min(self.vertices, axis=0)) / 2
 
 	# Update the real vertices from the object's local copy
 	def _update_vertices(self):
@@ -285,7 +192,6 @@ class StaticNoClipModel:
 	def _scale_vertices(self, scaling):
 		self.vertices *= scaling
 		self._update_vertices()
-		self.ecb_dims *= scaling
 
 	# Rotate both the real, local vertices, the ecb dimensions, and the normals
 	def _rotate_vertices(self, rotation):
@@ -293,7 +199,6 @@ class StaticNoClipModel:
 		self.normals = rotation.apply(self.normals)
 		self._update_vertices()
 		self._update_normals()
-		self.ecb_dims = self._compute_ecb_dims()
 
 	# Translate both the real, local vertices, and the transformation center
 	def _translate_vertices(self, translation):
@@ -336,130 +241,6 @@ class StaticNoClipModel:
 	# Set the position of the model
 	def set_position(self, position):
 		self._translate_vertices(position - self.center)
-
-
-# Static model that does not check for collisions with environment
-class DynamicClipModel(StaticNoClipModel):
-	# Grounded attributes
-	run_force = 100.0
-	run_friction = 50.0
-	jump_force = 25.0
-
-	# Airbourne attributes
-	fall_force = 50.0
-	drift_force = 30.0
-	gravity_force = 100.0
-
-	# General attributes
-	ang_speed = 500.0
-	max_speed = 20.0
-
-	# Constructor
-	def __init__(self, vertex_list, keys, stage_model_list):
-
-		# Call the parent constructor
-		super().__init__(vertex_list)
-
-		# Store the instance attributes
-		self.keys = keys
-		self.stage_model_list = stage_model_list
-
-		# Start body at rest, in the air
-		self.velocity = np.zeros(3)
-		self.is_grounded = False
-
-	# Update model position based off keyboard input, existing velocity, and evironment coliisions
-	def update(self, dt):
-
-		# Update color depending on status
-		size = self.vertex_list.tex_coords.size
-		if self.is_grounded:
-			self.vertex_list.tex_coords = np.random.random(size) * 1000
-		else:
-			self.vertex_list.tex_coords = np.ones(size)
-
-		# Rotate the body
-		if self.keys[key.Q] and not self.keys[key.E]:
-			self.rotate_degrees('y', dt * self.ang_speed)
-		elif self.keys[key.E] and not self.keys[key.Q]:
-			self.rotate_degrees('y', -dt * self.ang_speed)
-
-		# Grounded motion
-		if self.is_grounded:
-
-			# Running
-			if self.keys[key.D] and not self.keys[key.A]:
-				self.velocity[0] += self.run_force * dt
-			elif self.keys[key.A] and not self.keys[key.D]:
-				self.velocity[0] -= self.run_force * dt
-
-			# Jumping
-			if self.keys[key.SPACE]:
-				self.velocity[1] += self.jump_force
-				self.is_grounded = False
-
-			# Friction
-			else:
-				self.velocity[0] -= np.sign(self.velocity[0]) * self.run_friction * dt
-				self.velocity[0] = np.where(np.abs(self.velocity[0]) - self.run_friction * dt < 0, 0, self.velocity[0])
-
-				# Max speed
-				self.velocity[0] = np.clip(self.velocity[0], -self.max_speed, self.max_speed)
-
-		# Airborne motion
-		else:
-
-			# Horizontal drifting
-			if self.keys[key.D] and not self.keys[key.A]:
-				self.velocity[0] += self.drift_force * dt
-			elif self.keys[key.A] and not self.keys[key.D]:
-				self.velocity[0] -= self.drift_force * dt
-
-			# Fast falling
-			if self.velocity[1] < 0 and self.keys[key.S]:
-				self.velocity[1] -= self.fall_force * dt
-
-			# Gravity
-			self.velocity[1] -= self.gravity_force * dt
-
-		# Move player for non-zero velocity
-		if not np.allclose(self.velocity, 0):
-			self._translate_vertices(dt * self.velocity)
-
-		# Clip detection
-		for stage_model in self.stage_model_list:
-
-			separation = np.abs(stage_model.center[0:2] - self.center[0:2]) \
-			             - (stage_model.ecb_dims[0:2] + self.ecb_dims[0:2])
-
-			# Check for negative separations
-			if np.all(separation < 0):
-
-				# Decide along which axis to eject the body
-				xi = np.argmax(separation)
-
-				# Determine direction along which to eject body
-				sign = np.sign(self.velocity[xi])
-
-				# Reset to grounded if landing on floor
-				if xi == 1 and sign < 0:
-					self.is_grounded = True
-
-				# Treat platforms differently
-				if stage_model.is_platform:
-
-					# Only drop through platform if down is held
-					if xi == 0 or sign > 0 or self.keys[key.S]:
-						continue
-
-				# Eject body
-				displacement = self.ecb_dims[xi] + stage_model.ecb_dims[xi]
-				new_position = np.copy(self.center)
-				new_position[xi] = stage_model.center[xi] - sign * displacement
-				self.set_position(new_position)
-
-				# Set velocity to zero
-				self.velocity[xi] = 0
 
 
 # Take care of camera movement
@@ -545,13 +326,15 @@ def on_mouse_scroll(x, y, scroll_x, scroll_y):
 
 # Update every frame
 def update(dt):
+	pass
 	# Update all mobile objects
-	for obj in object_list:
-		obj.update(dt)
+	#for obj in object_list:
+	#	obj.update(dt)
 
 
 # The main attraction
 if __name__ == "__main__":
+
 	# Setup window and the only batch
 	setup()
 	batch = pyglet.graphics.Batch()
@@ -571,34 +354,19 @@ if __name__ == "__main__":
 	# Camera translation speed
 	cam_rate = 0.7
 
-	# Create stage models
-	stage_model_list = battlefield_creator(batch)
+	# Create planet models
+	p1 = planet_creator(batch, "red")
+	p2 = planet_creator(batch, "blue")
 
-	# Decorate stage with triangle models
-	tri_front_vertex_list = triangle_practice(batch)
-	tri_front_model = StaticNoClipModel(tri_front_vertex_list)
-	tri_front_model.rescale(8)
-	tri_front_model.set_position([0, -1, 1])
-
-	tri_back_vertex_list = triangle_practice(batch)
-	tri_back_model = StaticNoClipModel(tri_back_vertex_list)
-	tri_back_model.rescale(8)
-	tri_back_model.rotate_degrees('y', 180)
-	tri_back_model.set_position([0, -1, -1])
-
-	# Load 3D fox model
-	os.chdir('fox/')
-	fox = pyglet.model.load("low-poly-fox-by-pixelmannen.obj", batch=batch)
-	fox_model = DynamicClipModel(fox.vertex_lists[0], keys, stage_model_list)
-
-	# Configure initial conditions for fox model
-	fox_model.rescale(2)
-	fox_model.set_position([-5, 1.2, 0])
-	fox_model.rotate_degrees('y', 90)
+	# Rescale and reposition the planets
+	p1.rescale(14)
+	p2.rescale(5)
+	p1.set_position([-10, -10, -10])
+	p2.set_position([5, 5, 5])
 
 	# Keep track of all the active models
 	object_list = []
-	object_list.append(fox_model)
+	object_list.extend([p1, p2])
 
 	# Run the animation!
 	pyglet.app.run()
