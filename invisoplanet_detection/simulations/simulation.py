@@ -30,20 +30,19 @@ class Vector:
 
 
 
-
 class Body:
 
     # units involved
     m_earth = 5.972e24 # kg
     AU = 1.495979e11 # m
     # gravitational constant in these units
-    G = 6.67408e-11 * m_earth ** 2 / AU ** 2
+    G = 6.67408e-11 * AU ** 3 / m_earth
 
     # construct
     def __init__(self, q, v, m):
 
-        # store the instance attributes
-        self.position = Vector(q)
+        # store the instance attributes (q and v should be vectors)
+        self.position = q
         self.velocity = v
         self.mass = m
 
@@ -56,7 +55,7 @@ class Body:
         return F
 
     # find the total force acting on this body from all other bodies
-    def __totalforce__(self):
+    def totalforce(self):
         pass
 
 
