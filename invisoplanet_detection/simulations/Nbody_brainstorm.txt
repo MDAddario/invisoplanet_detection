@@ -3,6 +3,7 @@ N-body simulation code flow:
 Initialize - set up ICs x_ij, v_ij (phase space) for N + m unknown bodies, masses M_i for N + m bodies
     - i is body index, j is dimension index
     - define class to hold info abt bodies
+    - zero the coordinate system to the initial center of mass
 
     PASS:
 
@@ -11,12 +12,34 @@ Initialize - set up ICs x_ij, v_ij (phase space) for N + m unknown bodies, masse
 
 Single Iteration
 
-    PASS:
+    PASS: bodies, time interval
 
-    RETURN:
+    RETURN: iterated bodies
+
+    - based on current positions of bodies, calculate gravitational field
+    - based on gravitational field, calculate where the bodies will be after t time
+    - use 2D cartesian coordinates (assume problem is confined to the plane)
+    - some sort of array of PDEs and an integrator?
 
 Wrapper to iterate Niter times
 
     PASS:
 
     RETURN:
+
+OBJECT-ORIENTED PROGRAMMING:
+- define CLASSES - user-defined data structures (for body: mass, position, and velocity?)
+- example:
+    class body:
+        # pass (this will just run the code without giving it an error- placeholder)
+
+        # first have to INITIALIZE the class:
+        def __init__(self, thing1, thing2):
+            self.thing1 = thing1
+            self.thing2 = thing2
+
+        # a class ATTRIBUTE is something which is the same for all instances of the class
+
+        attribute = thing3
+
+        # can also define CHILD classes that step from the parent class, with further specifications
