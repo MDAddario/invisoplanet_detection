@@ -55,6 +55,11 @@ class PhaseSpace:
     def __findCoM__(self):
         pass
 
-    # redefine all position and velocity coordinates for all
+    # redefine all position and velocity coordinates for all bodies in the system in terms of the
+    # center of mass
     def __CoMrecenter__(self):
+        pass
+
+    # calculate the matrix of all pair forces for the system at this instant
+    def __forcematrix__(self):
         pass
