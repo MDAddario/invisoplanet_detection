@@ -70,6 +70,7 @@ class PhaseSpace:
 
         return np.array(pos_arr), np.array(vel_arr), np.array(mass_arr)
 
+
     # find the center of mass of the system at the given instant in time
     # store it as a body object with mass the total mass of the system
     def findCoM(self):
@@ -82,8 +83,8 @@ class PhaseSpace:
 
         return Body(com_pos, com_vel, m_tot)
 
-    # redefine all pos and vel coordinates for all bodies in the system in terms of the
-    # center of mass
+
+    # redefine all pos and vel coordinates for all bodies in the system in terms of the center of mass
     def CoMrecenter(self):
 
         # first, find the CoM of the system in relation to the current origin
