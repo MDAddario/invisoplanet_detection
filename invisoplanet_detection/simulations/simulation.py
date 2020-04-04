@@ -109,14 +109,21 @@ class PhaseSpace:
 
 # set up the system to begin the iterations
 def initialize_simulation(icfile):
+    # read ic information from the file into a list of body objects
+    with open(icfile, "r") as file:
+        ics = np.genfromtxt(icfile)
 
-    # read in initial conditions from an external file
+    body_list = []
 
-    # store them in body classes
+    for i in np.arange(len(ics), step=5):
+        m = ics[i]
+        pos = np.array([ics[i + 1], ics[i + 2]])
+        vel = np.array([ics[i + 3], ics[i + 4]])
 
-    # read in masses from external file
+        body_list.extend([Body(pos, vel, m)])
 
-    # store them in body classes
+    # define an initial phase space object
+    init_space = PhaseSpace(body_list, 0)
 
     # define the initial phase space class
 
