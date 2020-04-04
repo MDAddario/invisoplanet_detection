@@ -1,16 +1,18 @@
 {
-  "bodies": {
-    "mass": 0.9,
-    "init_pos_x": 4,
-    "init_pos_y": 4,
-    "init_vel_x": 1,
-    "init_vel_y": -1
-  },
-  "body_2": {
-    "mass": 0.9,
-    "init_pos_x": -4,
-    "init_pos_y": -4,
-    "init_vel_x": -1,
-    "init_vel_y": 1
-  }
+  "bodies": [
+    {
+      "mass": 0.9,
+      "init_pos_x": 4,
+      "init_pos_y": 4,
+      "init_vel_x": 1,
+      "init_vel_y": -1
+    },
+    {
+      "mass": 2.1,
+      "init_pos_x": -4,
+      "init_pos_y": -4,
+      "init_vel_x": -1,
+      "init_vel_y": 1
+    }
+    ]
 }
