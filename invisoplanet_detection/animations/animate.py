@@ -45,7 +45,7 @@ def setup():
 
 
 # Create a planet as a box
-def planet_creator(batch, position_data, mass, color='grey'):
+def planet_creator(position_data, mass, color='grey'):
 	# Create the vertex and normal arrays
 	vertices = []
 	normals = []
@@ -135,10 +135,11 @@ def planet_creator(batch, position_data, mass, color='grey'):
 	group = pyglet.model.MaterialGroup(material=material)
 
 	# Create vertex list
-	vertex_list = batch.add_indexed(len(vertices) // 3, GL_QUADS, group, indices, ("v3f/dynamic", vertices), ("n3f/dynamic", normals))
+	vertex_list = batch.add_indexed(len(vertices) // 3, GL_QUADS, group, indices,
+	                                ("v3f/dynamic", vertices), ("n3f/dynamic", normals))
 
 	# Create object
-	return Planet(batch, vertex_list, position_data, mass, color)
+	return Planet(vertex_list, position_data, mass, color)
 
 
 # Planet object that holds position data and mass data
@@ -148,9 +149,8 @@ class Planet:
 	spin_ratio = 100
 
 	# Constructor
-	def __init__(self, batch, vertex_list, position_data, mass, color):
+	def __init__(self, vertex_list, position_data, mass, color):
 		# Store the instance attributes
-		self.batch = batch
 		self.vertex_list = vertex_list
 		self.position_data = position_data
 		self.mass = mass
@@ -172,10 +172,10 @@ class Planet:
 
 		# Initialize position and size
 		self.update(dt=0)
+		self.rescale(self.mass * self.mass_ratio)
 
 		# Trace the trajectory
-		if self.mass > 0:
-			self.rescale(self.mass * self.mass_ratio)
+		if len(self.position_data) > 1:
 			self._trace_trajectory()
 
 	# Destructor
@@ -192,8 +192,7 @@ class Planet:
 		# At each position, make a baby cube
 		for index in np.rint(indices).astype(int):
 			position = self.position_data[index]
-			self.trajectory_points.append(planet_creator(batch, [position], -1, self.color))
-			self.trajectory_points[-1].rescale(mini_mass)
+			self.trajectory_points.append(planet_creator([position], mini_mass, self.color))
 			self.trajectory_points[-1].spin_ratio *= spin_ratio
 
 	# Determine model center from the vertices
@@ -407,8 +406,8 @@ if __name__ == "__main__":
 	p2_mass = p1_mass
 
 	# Create planet models
-	p1 = planet_creator(batch, p1_pos, p1_mass, "red")
-	p2 = planet_creator(batch, p2_pos, p2_mass, "blue")
+	p1 = planet_creator(p1_pos, p1_mass, "red")
+	p2 = planet_creator(p2_pos, p2_mass, "blue")
 
 	# Keep track of all the active models
 	object_list = []
