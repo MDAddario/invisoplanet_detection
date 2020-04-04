@@ -1,7 +1,6 @@
 import numpy as np
 
 # define classes
-
 class Body:
     # units involved
     m_earth = 5.972e24  # kg
@@ -27,9 +26,9 @@ class Body:
         F = F / self.scalardistance(body2) ** 3
         return F
 
-    # find the total force acting on this body from all other bodies
+    # find the total force acting on this body from all other bodies (EXCLUDING those at the same position)
     def totalforce(self, bodies):
-        F = np.sum([self.pairforce(body) for body in bodies], axis=0)
+        F = np.sum([self.pairforce(body) for body in bodies if np.all(body.pos != self.pos)], axis=0)
         return F
 
 
@@ -40,6 +39,7 @@ class PhaseSpace:
 
     # construct
     def __init__(self, bodies, t):
+
         # store the instance attributes
         # bodies works just like any other list - it can be indexed from zero
         self.bodies = bodies
@@ -66,6 +66,7 @@ class PhaseSpace:
     # find the center of mass of the system at the given instant in time
     # store it as a body object with mass the total mass of the system
     def findCoM(self):
+
         m_tot = np.sum(self.mass)
         com_pos = np.sum(self.mass * self.pos, axis=0) / m_tot
         com_vel = np.sum(self.mass * self.vel, axis=0) / m_tot
@@ -74,6 +75,7 @@ class PhaseSpace:
     # redefine all pos and vel coordinates for all bodies in the system in terms of the
     # center of mass
     def CoMrecenter(self):
+
         # first, find the CoM of the system in relation to the current origin
         com_f = self.findCoM()
 
@@ -83,24 +85,19 @@ class PhaseSpace:
         return
 
     # calculate the matrix of all pair forces for the system at this instant
-    def forcematrix(self):
-        pass
+    def forces(self):
+
+        F_arr = []
+
+        for body in self.bodies:
+            F_arr.append(body.totalforce(self.bodies))
+
+        return np.array(F_arr)
 
     # print the pos and time information to an external file
     def printphasespace(self):
         pass
-    # redefine all pos and vel coordinates for all bodies in the system in terms of the
-    # center of mass
-    def CoMrecenter(self):
-        pass
 
-    # calculate the matrix of all pair forces for the system at this instant
-    def forcematrix(self):
-        pass
-
-    # print the pos and time information to an external file
-    def printphasespace(self):
-        pass
 
 # set up the system to begin the iterations
 def initialize_simulation(icfile):
