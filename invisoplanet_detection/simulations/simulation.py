@@ -2,7 +2,6 @@ import numpy as np
 
 # define classes
 
-
 class Body:
     # units involved
     m_earth = 5.972e24  # kg
@@ -16,9 +15,6 @@ class Body:
         self.pos = q
         self.vel = v
         self.mass = m
-
-    def pos(self):
-        return self.pos
 
     # find the magnitude of the separation between two bodies
     def scalardistance(self, body2):
@@ -38,6 +34,9 @@ class Body:
 
 
 class PhaseSpace:
+
+    # ***FLIP THIS? READ IN THE WHOLE PHASE SPACE FIRST AND THEN STORE THE INFO AS INDIVIDUAL BODIES WHEN
+    # NEEDED
 
     # construct
     def __init__(self, bodies, t):
@@ -64,10 +63,32 @@ class PhaseSpace:
         self.vel = np.array(vel_arr)
         self.mass = np.array(mass_arr)
 
-        # find the center of mass of the system at the given instant in time
-        def findCoM(self):
-            return np.sum(self.mass * self.pos, axis=0) / np.sum(self.mass)
+    # find the center of mass of the system at the given instant in time
+    # store it as a body object with mass the total mass of the system
+    def findCoM(self):
+        m_tot = np.sum(self.mass)
+        com_pos = np.sum(self.mass * self.pos, axis=0) / m_tot
+        com_vel = np.sum(self.mass * self.vel, axis=0) / m_tot
+        return Body(com_pos, com_vel, m_tot)
 
+    # redefine all pos and vel coordinates for all bodies in the system in terms of the
+    # center of mass
+    def CoMrecenter(self):
+        # first, find the CoM of the system in relation to the current origin
+        com_f = self.findCoM()
+
+        # adjust the position and velocity of all bodies in the space
+        self.pos = self.pos - com_f.pos
+        self.vel = self.vel - com_f.vel
+        return
+
+    # calculate the matrix of all pair forces for the system at this instant
+    def forcematrix(self):
+        pass
+
+    # print the pos and time information to an external file
+    def printphasespace(self):
+        pass
     # redefine all pos and vel coordinates for all bodies in the system in terms of the
     # center of mass
     def CoMrecenter(self):
