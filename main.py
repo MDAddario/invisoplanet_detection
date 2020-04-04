@@ -36,10 +36,10 @@ if __name__ == "__main__":
 	p1_mass = 1.4
 	p2_mass = 0.9
 
-	with open("testx.txt", "r") as file:
+	with open("/home/ddunne/Desktop/invisoplanet_detection/invisoplanet_detection/simulations/testx.txt", "r") as file:
 		posdata = np.genfromtxt(file)
 
-	n_steps = len(posdata)/2
+	n_steps = int(len(posdata)/2)
 
 	p1_idx = np.arange(len(posdata), step=2)
 	p2_idx = np.arange(1, len(posdata), step=2)
