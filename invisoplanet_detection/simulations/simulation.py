@@ -95,8 +95,16 @@ class PhaseSpace:
         return np.array(F_arr)
 
     # print the pos and time information to an external file
-    def printphasespace(self):
-        pass
+    # tfile and posfile both have to be file pointers to write files
+    def printphasespace(self, tfile, posfile):
+
+        tfile.write(str(self.time))
+        tfile.write("\n")
+
+        np.savetxt(posfile, self.pos)
+        posfile.write("\n")
+
+        return
 
 
 # set up the system to begin the iterations
@@ -123,6 +131,8 @@ def iterate():
 
 
 def simulate():
+
+    # CLOSE files
 
     pass
 
