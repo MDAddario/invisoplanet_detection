@@ -13,41 +13,41 @@ DEFINE unit for mass, position RIGHT AWAY
 SYSTEM OF 4n FIRST ORDER DIFFERENTIAL EQUATIONS, WITH 4n INITIAL CONDITIONS
 
 
-Define class to deal with VECTORS
-    - cross and dot products?
-    - function: scalar distance between two vectors
-    - function: vector sum
-    - function: change of coordinates
 
-Define class to hold info abt BODIES
+Body: class to hold info abt BODIES
     - position (as an x,y vector)
     - velocity (as an x,y vector)
-    - mass (in some arbitrary units (solar masses? easier not to have to worry about massive numbers)
-        - we'll treat these as point masses
-    - function: calculate the force on this body from a single other body
-    - function: calculate the force on this body from all other bodies using the previous function?
+    - mass (in earth masses)
+    - scalardistance: calculate the scalar distance between this body and a single other body
+    - recenter: change the origin of the coord system the body vectors are defined in terms of
+    - pairforce: calculate the force on this body from a single other body
+    - totalforce: calculate the force on this body from all other bodies using the previous function?
 
-Define class to hold PHASE SPACE as a whole for an instant in time
-    - should have time since t0 included, and all body classes
-    - also some sort of different subclass for Fij (force on body i from body j) matrix?
-    - function: calculate the center of mass of this system
-    - function: redefine all positions and velocities in terms of CoM
-    - function: calculate the Fij matrix for the system at this instant
+PhaseSpace: class to hold PHASE SPACE as a whole for an instant in time
+    - to initialize, needs a list of body objects, and a time at which they're defined
+    - arrayvals: returns three separate arrays - one containing the positions of all bodies (2xN),
+      one containing their velocities (2xN), and one containing their masses (N)
+    - findCoM: returns a body object containing the position and velocity of the CoM of the phase
+      space, and its total mass
+    - CoM:recenter adjusts all phase space coordinates to be centered around the CoM
+    - psprint: takes two file pointers, prints the current time and positions of all ps elements to
+      the two separate files
 
 
 
-INITIALIZE
+initialize_simulation(icfile):
 
-    PASS: initial phase space, initial masses (read in from file)
+    PASS: file name of a file structured like the README containing the ICs
 
-    RETURN: information correctly stored in the right classes and in the right frame
+    RETURN: a phase space object with all information correctly stored and centered around the
+            CoM
 
-    - set up ICs x_ij, v_ij (phase space) for N + m unknown bodies, masses M_i for N + m bodies
-    - i is body index, j is dimension index
+    - opens the file, reads ICs in, closes it
+    - stores information for each body in body objects
+    - passes a list of all body objects, and the time zero to a phase space object
+    - recenters the phase space object around the CoM
+    - opens files to hold t and pos information and prints the initial ps data to them
 
-    - zero the coordinate system to the initial center of mass and adjust coordinates?
-        - need x,y positions and velocities defined in terms of this initial CoM
-    - define boundaries?
 
     TESTS:
         - make sure information is stored in every phase space coordinate and mass (check for NaNs)
@@ -55,28 +55,32 @@ INITIALIZE
         - make sure none of the bodies are wildly far away from all of the other ones
 
 
-SINGLE ITERATION
+iterate(space_i, dt)
 
     PASS: phase space of all bodies, time interval dt
 
     RETURN: phase space of all bodies after they have evolved for the duration of the time interval
 
-    - FIRST, calculate the system of forces acting on each body i from all other bodies j
-        - use constants of motion - center of mass moves with constant velocity (DO therefore want to be in CoM frame,
-          bc it's inertial and so we can ignore this extra motion
-        - gravitational potential has singularity at r_ij=0 - need to soften it somehow (usually w a small number epsilon
+    - calculates the acceleration a of each body due to the forces acting on it of all other bodies
+    - using the initial position and velocity, and assuming the acceleration is locally linear, calculate
+      the position and velocity of each body after an acceleration a for a time dt:
+
+      a = F/m
+      xf = xi + vi*dt + 1/2 a*dt^2
+      vf = vi + a*dt
+      tf = ti + dt
+
+    - returns a new phase space object with the final positions and velocities of each body, and the final time
+
+
+    NOTES:
+    - gravitational potential has singularity at r_ij=0 - need to soften it somehow (usually w a small number epsilon
           in the denominator sqrt
-        - system is chaotic - eqm is not stable but we see stability so some sort of eqm has been reached?
+    - system is chaotic - eqm is not stable but we see stability so some sort of eqm has been reached?
             - skip past this by again assuming the universe has put the bodies into eqm for us
-      (just a matrix of Fij)
-
-    - THEN, based on this force matrix, calculate where the bodies will be after t time
-        - need integrator over the time interval dt passed (don't actually integrate)
-        - return new positions and velocities
-
-    - use 2D cartesian coordinates (assume problem is confined to the plane)
     - this step is going to need to be optimized as much as possible
     - boundary conditions?
+
 
     TESTS:
         - check for NaNs
@@ -87,13 +91,12 @@ SINGLE ITERATION
         - calculate total energy before and after iterating, make sure it hasn't changed significantly
         - calculate angular momentum before and after iterating, make sure it hasn't changed significantly
 
-WRAPPER TO ITERATE N_iter TIMES
 
-- length of time
+simulate(space_i, Niter, dt)
 
     PASS: initial phase space, number of iterations, time interval dt
 
-    RETURN: final phase space
+    RETURN: final phase space after iterating N iter times
 
     - just loop through the single iteration repeatedly
     - after each step, print the time and position information to a file
@@ -112,20 +115,4 @@ WRAPPER TO ITERATE N_iter TIMES
 
         then test that it actually works:
             - first test of complete simulation: kepler problem (single planet orbiting around very massive sun)
-
-OBJECT-ORIENTED PROGRAMMING:
-- define CLASSES - user-defined data structures (for body: mass, position, and velocity?)
-- example:
-    class body:
-        # pass (this will just run the code without giving it an error- placeholder)
-
-        # first have to INITIALIZE the class:
-        def __init__(self, thing1, thing2):
-            self.thing1 = thing1
-            self.thing2 = thing2
-
-        # a class ATTRIBUTE is something which is the same for all instances of the class
-
-        attribute = thing3
-
-        # can also define CHILD classes that step from the parent class, with further specifications
+s that step from the parent class, with further specifications
