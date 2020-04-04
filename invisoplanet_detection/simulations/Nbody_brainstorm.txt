@@ -35,18 +35,18 @@ PhaseSpace: class to hold PHASE SPACE as a whole for an instant in time
 
 
 
-initialize_simulation(icfile):
+initialize(icfile, filenames):
 
     PASS: file name of a file structured like the README containing the ICs
 
     RETURN: a phase space object with all information correctly stored and centered around the
-            CoM
+            CoM, file pointers to the output t and x files
 
     - opens the file, reads ICs in, closes it
     - stores information for each body in body objects
     - passes a list of all body objects, and the time zero to a phase space object
     - recenters the phase space object around the CoM
-    - opens files to hold t and pos information and prints the initial ps data to them
+    - opens files in filenames to hold t and pos information and prints the initial ps data to them
 
 
     TESTS:
@@ -92,7 +92,7 @@ iterate(space_i, dt)
         - calculate angular momentum before and after iterating, make sure it hasn't changed significantly
 
 
-simulate(space_i, Niter, dt)
+simulate(space_i, Niter, dt, outfiles)
 
     PASS: initial phase space, number of iterations, time interval dt
 

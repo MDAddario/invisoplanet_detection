@@ -23,17 +23,17 @@ class Body:
         diff = self.pos - body2.pos
         return np.sqrt(np.sum(diff ** 2))
 
-    # find the pair gravitational force acting on this body from a single other body
-    def pairforce(self, body2):
-        F = Body.G * self.mass * body2.mass * (self.pos - body2.pos)
-        F = F / self.scalardistance(body2) ** 3
-        return F
-
     # change the origin of the coordinate system
     def recenter(self, rnew):
         self.pos = self.pos - rnew.pos
         self.vel = self.vel - rnew.vel
         return
+
+    # find the pair gravitational force acting on this body from a single other body
+    def pairforce(self, body2):
+        F = Body.G * self.mass * body2.mass * (self.pos - body2.pos)
+        F = F / self.scalardistance(body2) ** 3
+        return F
 
     # find the total force acting on this body from all other bodies (EXCLUDING those at the same position)
     def totalforce(self, bodies):
@@ -109,7 +109,10 @@ class PhaseSpace:
 
 
 # set up the system to begin the iterations
-def initialize_simulation(icfile):
+# both icfile and filenames should be str objects containing the names of the associated files,
+# filenames should be of the format (tfilename, xfilename)
+def initialize(icfile, filenames):
+
     # read ic information from the file into a list of body objects
     with open(icfile, "r") as file:
         ics = np.genfromtxt(icfile)
@@ -130,12 +133,12 @@ def initialize_simulation(icfile):
     init_space.CoMrecenter()
 
     # define output files and print the initial positions and times to them
-    t_outfile = open("testt.txt", "w")
-    x_outfile = open("testx.txt", "w")
+    t_outfile = open(filenames[0], "w")
+    x_outfile = open(filenames[1], "w")
 
     init_space.psprint(t_outfile, x_outfile)
 
-    return init_space
+    return init_space, [t_outfile, x_outfile]
 
 
 # progress the simulation by a single time interval dt
@@ -158,10 +161,21 @@ def iterate(space_i, dt):
     return PhaseSpace(bodies_f, tf)
 
 
-def simulate():
+# initialize the simulation from the icfile and run it n_iter times, progressing by time interval
+# dt each time
+def simulate(icfile, n_iter, dt, filenames):
+    # call initialize to prepare the simulation
+    space_i, outfiles = initialize(icfile, filenames)
 
-    # CLOSE files
+    # loop through iterate Niter times, each time progressing by a timestep dt and printing the results after
+    # each step
+    for i in range(n_iter):
+        space_i = iterate(space_i, dt)
+        space_i.psprint(*outfiles)
 
-    pass
+    # close the files
+    outfiles[0].close()
+    outfiles[1].close()
 
-    #
+    # return the final phasespace object
+    return space_i
