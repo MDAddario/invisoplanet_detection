@@ -96,7 +96,7 @@ class PhaseSpace:
 
     # print the pos and time information to an external file
     # tfile and posfile both have to be file pointers to write files
-    def printphasespace(self, tfile, posfile):
+    def psprint(self, tfile, posfile):
 
         tfile.write(str(self.time))
         tfile.write("\n")
