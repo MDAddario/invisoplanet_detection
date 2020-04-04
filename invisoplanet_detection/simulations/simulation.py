@@ -64,9 +64,9 @@ class PhaseSpace:
         self.vel = np.array(vel_arr)
         self.mass = np.array(mass_arr)
 
-    # find the center of mass of the system at the given instant in time
-    def findCoM(self):
-        pass
+        # find the center of mass of the system at the given instant in time
+        def findCoM(self):
+            return np.sum(self.mass * self.pos, axis=0) / np.sum(self.mass)
 
     # redefine all pos and vel coordinates for all bodies in the system in terms of the
     # center of mass
