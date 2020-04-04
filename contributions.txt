@@ -5,3 +5,4 @@ Naming conventions:
 
 Contribution list:
 	Designing repository architecture: MLD
+	Animations submodule: MLD
