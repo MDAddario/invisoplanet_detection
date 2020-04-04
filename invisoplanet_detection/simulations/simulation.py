@@ -1,6 +1,9 @@
 import numpy as np
 
 # define classes
+
+
+# a single point mass in space, with an associated position and velocity
 class Body:
     # units involved
     m_earth = 5.972e24  # kg
@@ -26,16 +29,20 @@ class Body:
         F = F / self.scalardistance(body2) ** 3
         return F
 
+    # change the origin of the coordinate system
+    def recenter(self, rnew):
+        self.pos = self.pos - rnew.pos
+        self.vel = self.vel - rnew.vel
+        return
+
     # find the total force acting on this body from all other bodies (EXCLUDING those at the same position)
     def totalforce(self, bodies):
         F = np.sum([self.pairforce(body) for body in bodies if np.all(body.pos != self.pos)], axis=0)
         return F
 
 
+# the whole system (with positions, masses, and velocities, at a single instant in time)
 class PhaseSpace:
-
-    # ***FLIP THIS? READ IN THE WHOLE PHASE SPACE FIRST AND THEN STORE THE INFO AS INDIVIDUAL BODIES WHEN
-    # NEEDED
 
     # construct
     def __init__(self, bodies, t):
@@ -45,13 +52,14 @@ class PhaseSpace:
         self.bodies = bodies
         self.time = t
 
-        # read in all positions, velocities, and masses into single arrays for easy access
+    # read in all positions, velocities, and masses into single arrays for easy access
+    def arrayvals(self):
+
         pos_arr = []
         vel_arr = []
         mass_arr = []
 
-        # ***
-        for body in bodies:
+        for body in self.bodies:
             pos = [body.pos[0], body.pos[1]]
             vel = [body.vel[0], body.vel[1]]
             mass = [body.mass]
@@ -59,17 +67,18 @@ class PhaseSpace:
             vel_arr.append(vel)
             mass_arr.append(mass)
 
-        self.pos = np.array(pos_arr)
-        self.vel = np.array(vel_arr)
-        self.mass = np.array(mass_arr)
+        return np.array(pos_arr), np.array(vel_arr), np.array(mass_arr)
 
     # find the center of mass of the system at the given instant in time
     # store it as a body object with mass the total mass of the system
     def findCoM(self):
 
-        m_tot = np.sum(self.mass)
-        com_pos = np.sum(self.mass * self.pos, axis=0) / m_tot
-        com_vel = np.sum(self.mass * self.vel, axis=0) / m_tot
+        m, x, v = self.arrayvals()
+
+        m_tot = np.sum(m)
+        com_pos = np.sum(m * x, axis=0) / m_tot
+        com_vel = np.sum(m * v, axis=0) / m_tot
+
         return Body(com_pos, com_vel, m_tot)
 
     # redefine all pos and vel coordinates for all bodies in the system in terms of the
@@ -79,29 +88,21 @@ class PhaseSpace:
         # first, find the CoM of the system in relation to the current origin
         com_f = self.findCoM()
 
-        # adjust the position and velocity of all bodies in the space
-        self.pos = self.pos - com_f.pos
-        self.vel = self.vel - com_f.vel
-        return
-
-    # calculate the matrix of all pair forces for the system at this instant
-    def forces(self):
-
-        F_arr = []
-
         for body in self.bodies:
-            F_arr.append(body.totalforce(self.bodies))
+            body.recenter(com_f)
 
-        return np.array(F_arr)
+        return
 
     # print the pos and time information to an external file
     # tfile and posfile both have to be file pointers to write files
     def psprint(self, tfile, posfile):
 
+        m, x, v = self.arrayvals()
+
         tfile.write(str(self.time))
         tfile.write("\n")
 
-        np.savetxt(posfile, self.pos)
+        np.savetxt(posfile, x)
         posfile.write("\n")
 
         return
@@ -137,9 +138,24 @@ def initialize_simulation(icfile):
     return init_space
 
 
-def iterate():
+# progress the simulation by a single time interval dt
+def iterate(space_i, dt):
 
-    pass
+    bodies_f = []
+
+    # calculate the acceleration of each of the bodies in space_i from the grav force of all other bodies:
+    for body in space_i.bodies:
+        a = body.totalforce(space_i.bodies) / body.mass
+
+        xf = body.pos + body.vel * dt + 0.5 * a * dt ** 2
+        vf = body.vel + a * dt
+
+        bodies_f.extend([Body(xf, vf, body.mass)])
+
+    # time at the end of the iteration
+    tf = space_i.time + dt
+
+    return PhaseSpace(bodies_f, tf)
 
 
 def simulate():
