@@ -125,11 +125,16 @@ def initialize_simulation(icfile):
     # define an initial phase space object
     init_space = PhaseSpace(body_list, 0)
 
-    # define the initial phase space class
+    # recenter the phase space around its CoM
+    init_space.CoMrecenter()
 
-    # recenter all coordinates with respect to the center of mass
+    # define output files and print the initial positions and times to them
+    t_outfile = open("testt.txt", "w")
+    x_outfile = open("testx.txt", "w")
 
-    pass
+    init_space.psprint(t_outfile, x_outfile)
+
+    return init_space
 
 
 def iterate():
