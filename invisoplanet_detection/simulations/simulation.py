@@ -113,17 +113,16 @@ class PhaseSpace:
 # both icfile and filenames should be str objects containing the names of the associated files,
 # filenames should be of the format (tfilename, xfilename)
 def initialize(icfile, filenames):
-
     # read ic information from the file into a list of body objects
     with open(icfile, "r") as file:
-        ics = np.genfromtxt(icfile)
+        ics = json.load(file)
 
     body_list = []
 
-    for i in np.arange(len(ics), step=5):
-        m = ics[i]
-        pos = np.array([ics[i + 1], ics[i + 2]])
-        vel = np.array([ics[i + 3], ics[i + 4]])
+    for body in ics["bodies"]:
+        m = body["mass"]
+        pos = np.array([body["init_pos"]["x"], body["init_pos"]["y"]])
+        vel = np.array([body["init_vel"]["x"], body["init_vel"]["y"]])
 
         body_list.extend([Body(pos, vel, m)])
 

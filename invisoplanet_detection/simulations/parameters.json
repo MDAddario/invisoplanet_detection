@@ -2,29 +2,22 @@
   "bodies": [
     {
       "mass": 0.9,
-      "init_pos": [
-        {
-          "x": 4,
-          "y": 4
-        }
-      ],
-      "init_vel": [
-        {
-          "x": 1,
-          "y": -1
-        }
-      ]
+      "init_pos": {
+        "x": 4,
+        "y": 4
+      },
+      "init_vel": {
+        "x": 1,
+        "y": -1
+      }
     },
     {
       "mass": 2.1,
-      "init_pos": [
-        {
+      "init_pos": {
           "x": -4,
           "y": -4
-        }
-      ],
-      "init_vel": [
-        {
+        },
+      "init_vel": {
           "x": -1,
           "y": -1
         }
