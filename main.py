@@ -1,16 +1,33 @@
-# Import the entire repository
-import invisoplanet_detection as invis
-
+# Import the animations submodule
+from invisoplanet_detection.animations import *
 
 if __name__ == "__main__":
 
-	# Example of how to call functions from the subpackages
-	invis.statistics.statistics_print()
-	invis.simulations.simulations_print()
+	# Create sample position data
+	parameter = np.linspace(0, 1, num=120)
+	p1_x_pos = 10 * np.cos(2 * np.pi * parameter - np.pi / 4) - 5
+	p1_y_pos = 10 * np.sin(2 * np.pi * parameter - np.pi / 4) - 5
+	p1_z_pos = np.zeros(len(parameter))
 
-	# If the names get too long, can do this
-	stats = invis.statistics
-	simuls = invis.simulations
+	p1_pos = []
+	for x, y, z in zip(p1_x_pos, p1_y_pos, p1_z_pos):
+		p1_pos.append([x, y, z])
 
-	stats.statistics_print()
-	simuls.simulations_print()
+	p2_x_pos = -10 * np.sin(2 * np.pi * parameter + np.pi) + 5
+	p2_y_pos = -10 * np.cos(2 * np.pi * parameter + np.pi) + 5
+	p2_z_pos = np.zeros(len(parameter))
+
+	p2_pos = []
+	for x, y, z in zip(p2_x_pos, p2_y_pos, p2_z_pos):
+		p2_pos.append([x, y, z])
+
+	# Create sample masses
+	p1_mass = 4
+	p2_mass = p1_mass
+
+	# Create planet models
+	p1 = planet_creator(p1_pos, p1_mass, "red")
+	p2 = planet_creator(p2_pos, p2_mass, "blue")
+
+	# Run the animation!
+	pyglet.app.run()

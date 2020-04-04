@@ -6,13 +6,8 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 
 # Setup window
-try:
-	# Try and create a window with multisampling (antialiasing)
-	config = Config(sample_buffers=1, samples=4, depth_size=16, double_buffer=True)
-	window = pyglet.window.Window(resizable=True, config=config)
-except pyglet.window.NoSuchConfigException:
-	# Fall back to no multisampling for old hardware
-	window = pyglet.window.Window(resizable=True)
+config = Config(sample_buffers=1, samples=4, depth_size=16, double_buffer=True)
+window = pyglet.window.Window(resizable=True, config=config)
 
 # Set window projection to 3D
 window.projection = pyglet.window.Projection3D()
@@ -139,7 +134,12 @@ def planet_creator(position_data, mass, color='grey'):
 	                                ("v3f/dynamic", vertices), ("n3f/dynamic", normals))
 
 	# Create object
-	return Planet(vertex_list, position_data, mass, color)
+	planet = Planet(vertex_list, position_data, mass, color)
+
+	if len(position_data) > 1:
+		object_list.append(planet)
+
+	return planet
 
 
 # Planet object that holds position data and mass data
@@ -360,62 +360,25 @@ def update(dt):
 		obj.update(dt)
 
 
-# The main attraction
-if __name__ == "__main__":
+# Setup window and the only batch
+setup()
+batch = pyglet.graphics.Batch()
 
-	# Setup window and the only batch
-	setup()
-	batch = pyglet.graphics.Batch()
+# Add keystate handler
+keys = key.KeyStateHandler()
+window.push_handlers(keys)
 
-	# Add keystate handler
-	keys = key.KeyStateHandler()
-	window.push_handlers(keys)
+# Schedule the ever-important update function
+pyglet.clock.schedule(update)
 
-	# Schedule the ever-important update function
-	pyglet.clock.schedule(update)
+# Initialize global variables for camera rotation and translation
+ry = rz = dx = 0
+rx = -60
+dy = -2
+dz = -40
 
-	# Initialize global variables for camera rotation and translation
-	ry = rz = dx = 0
-	rx = -60
-	dy = -2
-	dz = -40
+# Camera translation speed
+cam_rate = 0.7
 
-	# Camera translation speed
-	cam_rate = 0.7
-
-	# Create position data
-	parameter = np.linspace(0, 1, num=120)
-	p1_x_pos = 10 * np.cos(2 * np.pi * parameter - np.pi/4) - 5
-	p1_y_pos = 10 * np.sin(2 * np.pi * parameter - np.pi/4) - 5
-	p1_z_pos = np.zeros(len(parameter))
-
-	p1_pos = []
-	for x, y, z in zip(p1_x_pos, p1_y_pos, p1_z_pos):
-		p1_pos.append([x, y, z])
-
-	p2_x_pos = -10 * np.sin(2 * np.pi * parameter + np.pi) + 5
-	p2_y_pos = -10 * np.cos(2 * np.pi * parameter + np.pi) + 5
-	p2_z_pos = np.zeros(len(parameter))
-
-	p2_pos = []
-	for x, y, z in zip(p2_x_pos, p2_y_pos, p2_z_pos):
-		p2_pos.append([x, y, z])
-
-	# Set masses
-	p1_mass = 4
-	p2_mass = p1_mass
-
-	# Create planet models
-	p1 = planet_creator(p1_pos, p1_mass, "red")
-	p2 = planet_creator(p2_pos, p2_mass, "blue")
-
-	# Keep track of all the active models
-	object_list = []
-	object_list.extend([p1, p2])
-
-	# Animate the trajectories
-	#object_list.extend(p1.trajectory_points)
-	#object_list.extend(p2.trajectory_points)
-
-	# Run the animation!
-	pyglet.app.run()
+# Keep track of objects
+object_list = []
