@@ -19,7 +19,6 @@ class Body:
     # find the magnitude of the separation between two bodies
     def scalardistance(self, body2):
         diff = self.pos - body2.pos
-
         return np.sqrt(np.sum(diff ** 2))
 
     # find the pair gravitational force acting on this body from a single other body
@@ -29,8 +28,9 @@ class Body:
         return F
 
     # find the total force acting on this body from all other bodies
-    def totalforce(self):
-        pass
+    def totalforce(self, bodies):
+        F = np.sum([self.pairforce(body) for body in bodies], axis=0)
+        return F
 
 
 class PhaseSpace:
