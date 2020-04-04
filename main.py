@@ -3,6 +3,13 @@ from invisoplanet_detection.animations import *
 
 if __name__ == "__main__":
 
+	"""
+	Note, the position data supplied to the planet_creator() must be formatted
+	as a list of lists of length 3. That is, the following is an example of 
+	proper position data:
+	>>>> position_data = [[1, 0, 0], [1, 1, 0], [1, 2, 0], [1, 3, 0]]
+	"""
+
 	# Create sample position data
 	parameter = np.linspace(0, 1, num=120)
 	p1_x_pos = 10 * np.cos(2 * np.pi * parameter - np.pi / 4) - 5

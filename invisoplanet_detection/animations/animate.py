@@ -46,9 +46,7 @@ def planet_creator(position_data, mass, color='grey'):
 	normals = []
 
 	# Have some standard normals
-	x_normal = np.array([0.98, 0.1, 0.1])
-	y_normal = np.array([0.1, 0.98, 0.1])
-	z_normal = np.array([0.1, 0.1, 0.98])
+	x_normal, y_normal, z_normal = np.identity(3)
 
 	# Front face
 	vertices.extend(np.array([0, 0, 1]))
@@ -146,7 +144,7 @@ def planet_creator(position_data, mass, color='grey'):
 class Planet:
 
 	mass_ratio = 1
-	spin_ratio = 100
+	spin_rate = 100
 
 	# Constructor
 	def __init__(self, vertex_list, position_data, mass, color):
@@ -183,7 +181,7 @@ class Planet:
 		self.vertex_list.delete()
 
 	# Plot n little boxes along the way of the trajectory
-	def _trace_trajectory(self, n=30, mini_mass=0.3, spin_ratio=-3):
+	def _trace_trajectory(self, n=30, mini_mass=0.3, spin_rate=-300):
 
 		# Determine the indices of the locations
 		indices = np.linspace(0, len(self.position_data), num=n, endpoint=False)
@@ -193,7 +191,7 @@ class Planet:
 		for index in np.rint(indices).astype(int):
 			position = self.position_data[index]
 			self.trajectory_points.append(planet_creator([position], mini_mass, self.color))
-			self.trajectory_points[-1].spin_ratio *= spin_ratio
+			self.trajectory_points[-1].spin_rate = spin_rate
 
 	# Determine model center from the vertices
 	def _compute_center(self):
@@ -269,7 +267,7 @@ class Planet:
 			self.frame = 0
 
 		# Rotate body
-		self.rotate_degrees('z', dt * self.spin_ratio)
+		self.rotate_degrees('z', dt * self.spin_rate)
 
 
 # Take care of camera movement
@@ -374,7 +372,7 @@ pyglet.clock.schedule(update)
 # Initialize global variables for camera rotation and translation
 ry = rz = dx = 0
 rx = -60
-dy = -2
+dy = 2
 dz = -40
 
 # Camera translation speed
