@@ -13,19 +13,22 @@ class Body:
     # construct
     def __init__(self, q, v, m):
         # store the instance attributes (q and v should be vectors stored as np arrays)
-        self.position = q
-        self.velocity = v
+        self.pos = q
+        self.vel = v
         self.mass = m
+
+    def pos(self):
+        return self.pos
 
     # find the magnitude of the separation between two bodies
     def scalardistance(self, body2):
-        diff = self.position - body2.position
+        diff = self.pos - body2.pos
 
         return np.sqrt(np.sum(diff ** 2))
 
     # find the pair gravitational force acting on this body from a single other body
     def pairforce(self, body2):
-        F = Body.G * self.mass * body2.mass * (self.position - body2.position)
+        F = Body.G * self.mass * body2.mass * (self.pos - body2.pos)
         F = F / self.scalardistance(body2) ** 3
         return F
 
@@ -43,11 +46,29 @@ class PhaseSpace:
         self.bodies = bodies
         self.time = t
 
+        # read in all positions, velocities, and masses into single arrays for easy access
+        pos_arr = []
+        vel_arr = []
+        mass_arr = []
+
+        # ***
+        for body in bodies:
+            pos = [body.pos[0], body.pos[1]]
+            vel = [body.vel[0], body.vel[1]]
+            mass = [body.mass]
+            pos_arr.append(pos)
+            vel_arr.append(vel)
+            mass_arr.append(mass)
+
+        self.pos = np.array(pos_arr)
+        self.vel = np.array(vel_arr)
+        self.mass = np.array(mass_arr)
+
     # find the center of mass of the system at the given instant in time
     def findCoM(self):
         pass
 
-    # redefine all position and velocity coordinates for all bodies in the system in terms of the
+    # redefine all pos and vel coordinates for all bodies in the system in terms of the
     # center of mass
     def CoMrecenter(self):
         pass
@@ -56,10 +77,9 @@ class PhaseSpace:
     def forcematrix(self):
         pass
 
-    # print the position and time information to an external file
+    # print the pos and time information to an external file
     def printphasespace(self):
         pass
-
 
 # set up the system to begin the iterations
 def initialize_simulation(icfile):
