@@ -23,7 +23,8 @@ class Body:
         diff = self.pos - body2.pos
         return np.sqrt(np.sum(diff ** 2))
 
-    # change the origin of the coordinate system
+        # change the origin of the coordinate system
+
     def recenter(self, rnew):
         self.pos = self.pos - rnew.pos
         self.vel = self.vel - rnew.vel
@@ -37,11 +38,10 @@ class Body:
 
     # find the total force acting on this body from all other bodies (EXCLUDING those at the same position)
     def totalforce(self, bodies):
-        F = np.sum([self.pairforce(body) for body in bodies if np.all(body.pos != self.pos)], axis=0)
+        F = np.sum([self.pairforce(body) for body in bodies if np.any(body.pos != self.pos)], axis=0)
         return F
 
 
-# the whole system (with positions, masses, and velocities, at a single instant in time)
 class PhaseSpace:
 
     # construct
@@ -73,7 +73,7 @@ class PhaseSpace:
     # store it as a body object with mass the total mass of the system
     def findCoM(self):
 
-        m, x, v = self.arrayvals()
+        x, v, m = self.arrayvals()
 
         m_tot = np.sum(m)
         com_pos = np.sum(m * x, axis=0) / m_tot
@@ -97,7 +97,7 @@ class PhaseSpace:
     # tfile and posfile both have to be file pointers to write files
     def psprint(self, tfile, posfile):
 
-        m, x, v = self.arrayvals()
+        x, v, m = self.arrayvals()
 
         tfile.write(str(self.time))
         tfile.write("\n")
