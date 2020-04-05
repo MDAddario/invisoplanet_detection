@@ -144,7 +144,7 @@ def planet_creator(position_data, mass, color='grey'):
 class Planet:
 
 	mass_ratio = 3
-	spin_rate = 100
+	spin_rate = 20
 
 	# Constructor
 	def __init__(self, vertex_list, position_data, mass, color):
@@ -170,7 +170,7 @@ class Planet:
 
 		# Initialize position and size
 		self.update(dt=0)
-		self.rescale(self.mass * self.mass_ratio)
+		self.rescale(np.power(self.mass, 1/9) * self.mass_ratio)
 
 		# Trace the trajectory
 		if len(self.position_data) > 1:
@@ -181,7 +181,7 @@ class Planet:
 		self.vertex_list.delete()
 
 	# Plot n little boxes along the way of the trajectory
-	def _trace_trajectory(self, n=50, mini_mass=0.03, spin_rate=-300):
+	def _trace_trajectory(self, n=50, mini_mass=1e-10):
 
 		# Determine the indices of the locations
 		indices = np.linspace(0, len(self.position_data), num=n, endpoint=False)
@@ -191,7 +191,6 @@ class Planet:
 		for index in np.rint(indices).astype(int):
 			position = self.position_data[index]
 			self.trajectory_points.append(planet_creator([position], mini_mass, self.color))
-			self.trajectory_points[-1].spin_rate = spin_rate
 
 	# Determine model center from the vertices
 	def _compute_center(self):
@@ -267,7 +266,7 @@ class Planet:
 			self.frame = 0
 
 		# Rotate body
-		self.rotate_degrees('z', dt * self.spin_rate)
+		self.rotate_degrees('z', dt * self.spin_rate / np.power(self.mass, 1/9))
 
 
 # Take care of camera movement
