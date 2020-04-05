@@ -129,6 +129,15 @@ class PhaseSpace:
 
         return
 
+    # function to return the total energy (potential + kinetic) of the space at the given instant in time
+    def totalenergy(self):
+
+        x, v, m = self.arrayvals()
+
+        kinetic = np.sum(0.5 * v ** 2 * m)
+        potential = - space.bodies[0].G * np.product(m) / space.bodies[0].scalardistance(space.bodies[1])
+        return kinetic + potential
+
 
 # set up the system to begin the iterations
 # both icfile and filenames should be str objects containing the names of the associated files
