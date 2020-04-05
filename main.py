@@ -33,27 +33,33 @@ if __name__ == "__main__":
 	p2_mass = p1_mass
 
 	# load in the position data from the simulator
-	p1_mass = 2
-	p2_mass = 2
+	p1_mass = 1
+	p2_mass = 0.5
+	p3_mass = 0.3
 
 	with open("/home/ddunne/Desktop/invisoplanet_detection/invisoplanet_detection/simulations/testx.txt", "r") as file:
 		posdata = np.genfromtxt(file)
 
-	n_steps = int(len(posdata)/2)
+	n_steps = int(len(posdata)/3)
 
-	p1_idx = np.arange(len(posdata), step=2)
-	p2_idx = np.arange(1, len(posdata), step=2)
+	p1_idx = np.arange(len(posdata), step=3)
+	p2_idx = np.arange(1, len(posdata), step=3)
+	p3_idx = np.arange(2, len(posdata), step=3)
 
 	p1_xy_pos = posdata[p1_idx]
 	p2_xy_pos = posdata[p2_idx]
+	p3_xy_pos = posdata[p3_idx]
 
 	p1_x_pos = p1_xy_pos[:, 0]
 	p1_y_pos = p1_xy_pos[:, 1]
 	p2_x_pos = p2_xy_pos[:, 0]
 	p2_y_pos = p2_xy_pos[:, 1]
+	p3_x_pos = p3_xy_pos[:, 0]
+	p3_y_pos = p3_xy_pos[:, 1]
 
 	p1_z_pos = np.zeros(n_steps)
 	p2_z_pos = p1_z_pos
+	p3_z_pos = p1_z_pos
 
 	p1_pos = []
 	for x, y, z in zip(p1_x_pos, p1_y_pos, p1_z_pos):
@@ -63,9 +69,14 @@ if __name__ == "__main__":
 	for x, y, z in zip(p2_x_pos, p2_y_pos, p2_z_pos):
 		p2_pos.append([x, y, z])
 
+	p3_pos = []
+	for x, y, z in zip(p3_x_pos, p3_y_pos, p3_z_pos):
+		p3_pos.append([x, y, z])
+
 	# Create planet models
 	p1 = planet_creator(p1_pos, p1_mass, "red")
 	p2 = planet_creator(p2_pos, p2_mass, "blue")
+	p3 = planet_creator(p3_pos, p3_mass, "blue")
 
 	# Run the animation!
 	pyglet.app.run()

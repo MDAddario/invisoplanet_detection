@@ -7,7 +7,7 @@ import json
 # a single point mass in space, with an associated position and velocity
 class Body:
     # units involved
-    m_earth = 5.972e24  # kg
+    m_sun = 1.989e30 # kg
     AU = 1.495979e11  # m
     day = 86400 # s
     # gravitational constant in these units
@@ -99,14 +99,10 @@ class PhaseSpace:
 
         return
 
-    # print the pos and time information to an external file
-    # tfile and posfile both have to be file pointers to write files
-    def psprint(self, tfile, posfile):
+    # print the pos information to an external file (posfile must be a pointer to a write file)
+    def psprint(self, posfile):
 
         x, v, m = self.arrayvals()
-
-        tfile.write(str(self.time))
-        tfile.write("\n")
 
         np.savetxt(posfile, x)
         posfile.write("\n")
