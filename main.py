@@ -33,8 +33,8 @@ if __name__ == "__main__":
 	p2_mass = p1_mass
 
 	# load in the position data from the simulator
-	p1_mass = 1.4
-	p2_mass = 0.9
+	p1_mass = 3
+	p2_mass = 3
 
 	with open("/home/ddunne/Desktop/invisoplanet_detection/invisoplanet_detection/simulations/testx.txt", "r") as file:
 		posdata = np.genfromtxt(file)

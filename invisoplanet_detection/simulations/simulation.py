@@ -33,8 +33,11 @@ class Body:
 
     # find the pair gravitational force acting on this body from a single other body
     def pairforce(self, body2):
+
+        tol = 1e-6
+
         F = Body.G * self.mass * body2.mass * (self.pos - body2.pos)
-        F = F / self.scalardistance(body2) ** 3
+        F = F / (self.scalardistance(body2) ** 3 + tol)
         return F
 
     # find the total force acting on this body from all other bodies (EXCLUDING those at the same position)
