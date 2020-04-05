@@ -20,10 +20,6 @@ if __name__ == "__main__":
 	# find the final values of pos, vel, and mass
 	x, v, all_mass = space_f.arrayvals()
 
-	# scale up the masses of the planets so they're actually visible in relation to the sun
-	all_mass[1:] = all_mass[1:] * 1e2
-	all_mass[0] = all_mass[0] * 1e-1
-
 	n_bodies = len(space_f.bodies)
 
 	with open(out_file, "r") as file:
