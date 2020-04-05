@@ -9,8 +9,9 @@ class Body:
     # units involved
     m_earth = 5.972e24  # kg
     AU = 1.495979e11  # m
+    day = 86400 # s
     # gravitational constant in these units
-    G = 6.67408e-11 * AU ** 3 / m_earth
+    G = 6.67408e-11 * m_sun * day**2 / AU**3
 
     # construct
     def __init__(self, q, v, m):
