@@ -143,7 +143,7 @@ def planet_creator(position_data, mass, color='grey'):
 # Planet object that holds position data and mass data
 class Planet:
 
-	mass_ratio = 1
+	mass_ratio = 3
 	spin_rate = 100
 
 	# Constructor
@@ -181,7 +181,7 @@ class Planet:
 		self.vertex_list.delete()
 
 	# Plot n little boxes along the way of the trajectory
-	def _trace_trajectory(self, n=30, mini_mass=0.3, spin_rate=-300):
+	def _trace_trajectory(self, n=50, mini_mass=0.03, spin_rate=-300):
 
 		# Determine the indices of the locations
 		indices = np.linspace(0, len(self.position_data), num=n, endpoint=False)
@@ -373,7 +373,7 @@ pyglet.clock.schedule(update)
 ry = rz = dx = 0
 rx = -60
 dy = 2
-dz = -40
+dz = -20
 
 # Camera translation speed
 cam_rate = 0.7
