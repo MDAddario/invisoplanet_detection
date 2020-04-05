@@ -7,11 +7,11 @@ import json
 # a single point mass in space, with an associated position and velocity
 class Body:
     # units involved
-    m_sun = 1.989e30 # kg
+    m_sun = 1.989e30  # kg
     AU = 1.495979e11  # m
-    day = 86400 # s
+    day = 86400  # s
     # gravitational constant in these units
-    G = 6.67408e-11 * m_sun * day**2 / AU**3
+    G = 6.67408e-11 * m_sun * day ** 2 / AU ** 3
 
     # construct
     def __init__(self, q, v, m):
@@ -34,7 +34,6 @@ class Body:
 
     # find the pair gravitational force acting on this body from a single other body
     def pairforce(self, body2):
-
         tol = 1e-6
 
         F = Body.G * self.mass * body2.mass * (self.pos - body2.pos)
@@ -74,7 +73,6 @@ class PhaseSpace:
 
         return np.array(pos_arr), np.array(vel_arr), np.array(mass_arr)
 
-
     # find the center of mass of the system at the given instant in time
     # store it as a body object with mass the total mass of the system
     def findCoM(self):
@@ -87,8 +85,8 @@ class PhaseSpace:
 
         return Body(com_pos, com_vel, m_tot)
 
-
-    # redefine all pos and vel coordinates for all bodies in the system in terms of the center of mass
+    # redefine all pos and vel coordinates for all bodies in the system in terms of the
+    # center of mass
     def CoMrecenter(self):
 
         # first, find the CoM of the system in relation to the current origin
@@ -99,7 +97,8 @@ class PhaseSpace:
 
         return
 
-    # print the pos information to an external file (posfile must be a pointer to a write file)
+    # print the pos and time information to an external file
+    # tfile and posfile both have to be file pointers to write files
     def psprint(self, posfile):
 
         x, v, m = self.arrayvals()
@@ -111,8 +110,7 @@ class PhaseSpace:
 
 
 # set up the system to begin the iterations
-# both icfile and filenames should be str objects containing the names of the associated files,
-# filenames should be of the format (tfilename, xfilename)
+# both icfile and filenames should be str objects containing the names of the associated files
 def initialize(icfile, filename):
     # read ic information from the file into a list of body objects
     with open(icfile, "r") as file:
@@ -143,12 +141,11 @@ def initialize(icfile, filename):
 
 # progress the simulation by a single time interval dt
 def iterate(space_i, dt):
-
     bodies_f = []
 
     # calculate the acceleration of each of the bodies in space_i from the grav force of all other bodies:
     for body in space_i.bodies:
-        a = body.totalforce(space_i.bodies) / body.mass
+        a = - body.totalforce(space_i.bodies) / body.mass
 
         xf = body.pos + body.vel * dt + 0.5 * a * dt ** 2
         vf = body.vel + a * dt
