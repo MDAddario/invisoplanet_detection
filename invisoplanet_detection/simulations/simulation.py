@@ -133,9 +133,18 @@ class PhaseSpace:
     def totalenergy(self):
 
         x, v, m = self.arrayvals()
+        bodies = self.bodies
 
         kinetic = np.sum(0.5 * v ** 2 * m)
-        potential = - space.bodies[0].G * np.product(m) / space.bodies[0].scalardistance(space.bodies[1])
+        potential = 0.
+        for i in range(len(m)):
+            for j in np.arange(i+1, len(m)):
+
+                pot_val = bodies[i].G * bodies[i].mass * bodies[j].mass
+                pot_val /= bodies[i].scalardistance(bodies[j])
+
+                potential += pot_val
+
         return kinetic + potential
 
 
