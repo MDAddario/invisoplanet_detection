@@ -37,7 +37,7 @@ if __name__ == "__main__":
 	p2_mass = 0.5
 	p3_mass = 0.3
 
-	with open("/home/ddunne/Desktop/invisoplanet_detection/invisoplanet_detection/simulations/testx.txt", "r") as file:
+	with open("invisoplanet_detection/simulations/testx.txt", "r") as file:
 		posdata = np.genfromtxt(file)
 
 	n_steps = int(len(posdata)/3)
