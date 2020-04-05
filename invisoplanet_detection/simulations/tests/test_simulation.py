@@ -157,6 +157,17 @@ class TestSimulation():
 
     def test_simulate(self):
 
+        # check for NaNs
+        # check a file is created
+        # make sure none of the bodies are stacked on top of each other
+        # make sure none of the masses have changed
+        # make sure the CoM has not moved
+        # calculate total energy before and after iterating, make sure it hasn't changed significantly
+        # calculate total angular momentum before and after iterating, make sure it hasn't changed significantly
+
+        # kepler problem as a overall test of the physics
+
+
         pass
 
 

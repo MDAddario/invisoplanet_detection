@@ -73,6 +73,27 @@ class PhaseSpace:
 
         return np.array(pos_arr), np.array(vel_arr), np.array(mass_arr)
 
+
+    def polararrayvals(self):
+
+        x, v, m = self.arrayvals()
+
+        r = np.sqrt(np.sum(x**2, axis=1))
+        phi = np.arctan2(x[:, 1], x[:, 0])
+
+        vr = np.sqrt(np.sum(v**2, axis=1))
+        vphi = np.arctan2(v[:, 1], v[:, 0])
+
+        pol_pos = []
+        pol_vel = []
+
+        for i in range(len(m)):
+            pol_pos.append([r[i], phi[i]])
+            pol_vel.append([vr[i], vphi[i]])
+
+        return np.array(pol_pos), np.array(pol_vel), m
+
+
     # find the center of mass of the system at the given instant in time
     # store it as a body object with mass the total mass of the system
     def findCoM(self):
