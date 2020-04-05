@@ -116,7 +116,7 @@ class PhaseSpace:
 # set up the system to begin the iterations
 # both icfile and filenames should be str objects containing the names of the associated files,
 # filenames should be of the format (tfilename, xfilename)
-def initialize(icfile, filenames):
+def initialize(icfile, filename):
     # read ic information from the file into a list of body objects
     with open(icfile, "r") as file:
         ics = json.load(file)
@@ -137,12 +137,11 @@ def initialize(icfile, filenames):
     init_space.CoMrecenter()
 
     # define output files and print the initial positions and times to them
-    t_outfile = open(filenames[0], "w")
-    x_outfile = open(filenames[1], "w")
+    x_outfile = open(filename, "w")
 
-    init_space.psprint(t_outfile, x_outfile)
+    init_space.psprint(x_outfile)
 
-    return init_space, [t_outfile, x_outfile]
+    return init_space, x_outfile
 
 
 # progress the simulation by a single time interval dt
@@ -167,19 +166,18 @@ def iterate(space_i, dt):
 
 # initialize the simulation from the icfile and run it n_iter times, progressing by time interval
 # dt each time
-def simulate(icfile, n_iter, dt, filenames):
+def simulate(icfile, Niter, dt, filename):
     # call initialize to prepare the simulation
-    space_i, outfiles = initialize(icfile, filenames)
+    space_i, outfile = initialize(icfile, filename)
 
     # loop through iterate Niter times, each time progressing by a timestep dt and printing the results after
     # each step
-    for i in range(n_iter):
+    for i in range(Niter):
         space_i = iterate(space_i, dt)
-        space_i.psprint(*outfiles)
+        space_i.psprint(outfile)
 
     # close the files
-    outfiles[0].close()
-    outfiles[1].close()
+    outfile.close()
 
     # return the final phasespace object
     return space_i
