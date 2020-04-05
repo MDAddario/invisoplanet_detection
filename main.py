@@ -11,17 +11,18 @@ if __name__ == "__main__":
 	>>>> position_data = [[1, 0, 0], [1, 1, 0], [1, 2, 0], [1, 3, 0]]
 	"""
 
-	in_file = "invisoplanet_detection/data/sun_jupiter_saturn.json"
+	in_file = "invisoplanet_detection/data/sun_jupiter.json"
 	out_file = "invisoplanet_detection/data/testx.txt"
 
 	# run the n-body simulation
-	space_f = simulate(in_file, 10000, 2, out_file)
+	space_f = simulate(in_file, 10000, 1, out_file)
 
 	# find the final values of pos, vel, and mass
 	x, v, all_mass = space_f.arrayvals()
 
 	# scale up the masses of the planets so they're actually visible in relation to the sun
 	all_mass[1:] = all_mass[1:] * 1e2
+	all_mass[0] = all_mass[0] * 1e-1
 
 	n_bodies = len(space_f.bodies)
 
@@ -53,6 +54,17 @@ if __name__ == "__main__":
 	for i in range(n_bodies):
 		pi = planet_creator(all_pos[i], all_mass[i], all_colours[i])
 
+	# jupiter orbital parameters
+	a = 5.20336301  # semimajor axis, in AU
+	ecc = 0.04839266  # orbital eccentricity
+	T = 4332.589  # sidereal orbital period in days
+	omega = 2 * np.pi / T  # angular velocity
+
+	# find the time after t=0 at which jupiter's orbit is at perihelion
+	r_jupiter = np.sqrt(np.sum(np.power(all_pos[1], 2), axis=1))
+	perihelion_t = np.where(r_jupiter == np.min(r_jupiter))[0][0]
+	perihelion_theta = omega * perihelion_t
+	print(perihelion_theta)
 
 	# Run the animation!
 	pyglet.app.run()

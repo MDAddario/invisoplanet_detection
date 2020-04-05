@@ -214,3 +214,40 @@ def simulate(icfile, Niter, dt, filename):
 
     # return the final phasespace object
     return space_i
+
+
+# function to generate position data for the solution to the kepler problem for two given masses and an
+# initial position. it is assumed that m1 is the more massive body and it's starting at x=0
+# m1 and m2 should also be defined in terms of solar masses, to make the units work
+def kepler_jupiter(Niter, dt, theta0, outfilename):
+    # units involved
+    m_sun = 1.989e30  # kg
+    AU = 1.495979e11  # m
+    day = 86400  # s
+    # gravitational constant in these units
+    G = 6.67408e-11 * m_sun * day ** 2 / AU ** 3
+
+    # jupiter orbital parameters
+    a = 5.20336301 # semimajor axis, in AU
+    ecc = 0.04839266 # orbital eccentricity
+    T = 4332.589 # sidereal orbital period in days
+    omega = 2*np.pi/T # angular velocity
+
+    outfile = open(outfilename, 'w')
+
+    theta = 0.
+
+    for i in np.arange(Niter, step=dt):
+        theta = - theta0 + i * omega
+        r = a * (1 - ecc) / (1 + ecc*np.cos(theta))
+        x = r * np.cos(theta)
+        y = r * np.sin(theta)
+
+        pos_val = np.array([[0., 0.], [x, y]])
+        np.savetxt(outfile, x)
+        outfile.write("\n")
+
+    outfile.close()
+
+    return
+
