@@ -219,7 +219,7 @@ def simulate(icfile, Niter, dt, filename):
 # function to generate position data for the solution to the kepler problem for two given masses and an
 # initial position. it is assumed that m1 is the more massive body and it's starting at x=0
 # m1 and m2 should also be defined in terms of solar masses, to make the units work
-def kepler_jupiter(Niter, dt, theta0, outfilename):
+def kepler_jupiter(Niter, dt, theta0):
     # units involved
     m_sun = 1.989e30  # kg
     AU = 1.495979e11  # m
@@ -233,9 +233,10 @@ def kepler_jupiter(Niter, dt, theta0, outfilename):
     T = 4332.589 # sidereal orbital period in days
     omega = 2*np.pi/T # angular velocity
 
-    outfile = open(outfilename, 'w')
-
     theta = 0.
+
+    x_arr = []
+    y_arr = []
 
     for i in np.arange(Niter, step=dt):
         theta = - theta0 + i * omega
@@ -243,11 +244,8 @@ def kepler_jupiter(Niter, dt, theta0, outfilename):
         x = r * np.cos(theta)
         y = r * np.sin(theta)
 
-        pos_val = np.array([[0., 0.], [x, y]])
-        np.savetxt(outfile, x)
-        outfile.write("\n")
+        x_arr.extend(x)
+        y_arr.extend(y)
 
-    outfile.close()
-
-    return
+    return x_arr, y_arr
 

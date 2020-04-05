@@ -66,5 +66,12 @@ if __name__ == "__main__":
 	perihelion_theta = omega * perihelion_t
 	print(perihelion_theta)
 
+	kep_x_pos, kep_y_pos = kepler_jupiter(10000, 1, perihelion_theta)
+	kep_z_pos = np.zeros(n_steps)
+
+	for x, y, z in zip(kep_x_pos, kep_y_pos, kep_z_pos):
+		pi_pos.append([x, y, z])
+
+
 	# Run the animation!
 	pyglet.app.run()
