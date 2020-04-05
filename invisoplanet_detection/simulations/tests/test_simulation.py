@@ -147,9 +147,23 @@ class TestSimulation():
         nt.assert_almost_equal(com_i.mass, com_f.mass)
 
         # check the total energy before and after iterating, make sure it hasn't changed significantly
-        # calculate angular momentum before and after iterating, make sure it hasn't changed significantly
+        # *** right now only works for a 2-body system
+        def totalenergy(space):
+            x, v, m = space.arrayvals()
+            kinetic = np.sum(0.5 * v**2 * m)
 
-        pass
+            potential = - space.G * np.product(m) / space.bodies[0].scalardistance(space.bodies[1])
+            return kinetic + potential
+
+        nt.assert_almost_equal(totalenergy(space_i), totalenergy(space_f))
+
+        # calculate angular momentum before and after iterating, make sure it hasn't changed significantly
+        def angularmomentum(space):
+            x, v, m = space.arrayvals()
+            return np.cross(x, m*v)
+
+        nt.assert_almost_equal(angularmomentum(space_i), angularmomentum(space_f))
+
 
     def test_simulate(self):
 
