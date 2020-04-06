@@ -12,11 +12,11 @@ if __name__ == "__main__":
 	>>>> position_data = [[1, 0, 0], [1, 1, 0], [1, 2, 0], [1, 3, 0]]
 	"""
 
-	in_file = "invisoplanet_detection/data/sun_jupiter_saturn.json"
+	in_file = "invisoplanet_detection/data/binary.json"
 	out_file = "invisoplanet_detection/data/testx.txt"
 
 	# run the n-body simulation
-	space_f = simulate(in_file, 10000, 0.5, out_file)
+	space_f = simulate(in_file, 20000, 0.5, out_file)
 
 	# find the final values of pos, vel, and mass
 	x, v, all_mass = space_f.arrayvals()
@@ -51,22 +51,22 @@ if __name__ == "__main__":
 	for i in range(n_bodies):
 		pi = planet_creator(all_pos[i], all_mass[i], all_colours[i])
 
-
-	# jupiter orbital parameters
-	a = 5.20336301  # semimajor axis, in AU
-	ecc = 0.04839266  # orbital eccentricity
-	jupiter_orbit_params = [a, ecc]
-
-	kep_x_pos, kep_y_pos, delta = kepler_test(10000, 0.5, jupiter_orbit_params, all_pos[1])
-	kep_z_pos = np.zeros(n_steps)
-
-	kep_pos = []
-	for x, y, z in zip(kep_x_pos, kep_y_pos, kep_z_pos):
-		kep_pos.append([x, y, z])
-
-	pkep = planet_creator(kep_pos, all_mass[1]*1.1, all_colours[3])
-
-	print(delta)
+	#
+	# # jupiter orbital parameters
+	# a = 5.20336301  # semimajor axis, in AU
+	# ecc = 0.04839266  # orbital eccentricity
+	# jupiter_orbit_params = [a, ecc]
+	#
+	# kep_x_pos, kep_y_pos, delta = kepler_test(20000, 0.5, jupiter_orbit_params, all_pos[1])
+	# kep_z_pos = np.zeros(n_steps)
+	#
+	# kep_pos = []
+	# for x, y, z in zip(kep_x_pos, kep_y_pos, kep_z_pos):
+	# 	kep_pos.append([x, y, z])
+	#
+	# pkep = planet_creator(kep_pos, all_mass[1]*1.1, all_colours[3])
+	#
+	# print(delta)
 
 	# Run the animation!
 	pyglet.app.run()

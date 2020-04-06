@@ -229,8 +229,9 @@ def kepler_test(Niter, dt, orbit_params, sim_pos):
     G = 6.67408e-11 * m_sun * day ** 2 / AU ** 3
     a, ecc = orbit_params
 
-    init_pos = sim_pos[0][:-1]
-    sim_pos = np.reshape(sim_pos, (-1, 3))
+    sim_pos = np.array(sim_pos)[:, :-1]
+
+    init_pos = sim_pos[0, :]
 
     # initial position in cartesian coordinates of jupiter
     r_sim = np.sqrt(np.sum(np.square(init_pos)))
@@ -240,7 +241,7 @@ def kepler_test(Niter, dt, orbit_params, sim_pos):
     # jupiter orbital parameters
     a = 5.20336301 # semimajor axis, in AU
     ecc = 0.04839266 # orbital eccentricity
-    T = 4332.589 # sidereal orbital period in days
+    T = 4330.595 # sidereal orbital period in days
     omega = 2*np.pi/T # angular velocity
 
     x_arr = []
@@ -257,8 +258,8 @@ def kepler_test(Niter, dt, orbit_params, sim_pos):
         y_arr.extend([y])
 
     # percent difference: (approximate value - exact value) / exact value
-    per_diff_x = np.divide(np.subtract(sim_pos.T[0], x_arr), x_arr)
-    per_diff_y = np.divide(np.subtract(sim_pos.T[1], y_arr), y_arr)
+    per_diff_x = np.divide(np.subtract(sim_pos[:, 0], x_arr), (sim_pos[:, 0] + x_arr) / 2)
+    per_diff_y = np.divide(np.subtract(sim_pos[:, 1], y_arr), (sim_pos[:, 1] + y_arr) / 2)
 
     per_diff = [np.mean(per_diff_x), np.mean(per_diff_y)]
 

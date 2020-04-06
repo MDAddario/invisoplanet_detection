@@ -116,3 +116,10 @@ simulate(space_i, Niter, dt, outfiles)
         then test that it actually works:
             - first test of complete simulation: kepler problem (single planet orbiting around very massive sun)
 s that step from the parent class, with further specifications
+
+
+
+conditions for a binary:
+- for m1 = m2 = 1
+- a = 5
+p = sqrt(125 * 2 * pi^2 / G) = 2*pi/omega
