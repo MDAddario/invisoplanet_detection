@@ -34,7 +34,7 @@ class Body:
 
     # find the pair gravitational force acting on this body from a single other body
     def pairforce(self, body2):
-        tol = 1e-6
+        tol = 1e-15
 
         F = Body.G * self.mass * body2.mass * (self.pos - body2.pos)
         F = F / (self.scalardistance(body2) ** 3 + tol)
@@ -233,19 +233,17 @@ def kepler_jupiter(Niter, dt, theta0):
     T = 4332.589 # sidereal orbital period in days
     omega = 2*np.pi/T # angular velocity
 
-    theta = 0.
-
     x_arr = []
     y_arr = []
 
     for i in np.arange(Niter, step=dt):
         theta = - theta0 + i * omega
-        r = a * (1 - ecc) / (1 + ecc*np.cos(theta))
+        r = a * (1 - ecc**2) / (1 + ecc*np.cos(theta))
         x = r * np.cos(theta)
         y = r * np.sin(theta)
 
-        x_arr.extend(x)
-        y_arr.extend(y)
+        x_arr.extend([x])
+        y_arr.extend([y])
 
     return x_arr, y_arr
 
