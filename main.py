@@ -4,6 +4,7 @@ from invisoplanet_detection.simulations import *
 
 if __name__ == "__main__":
 
+
 	"""
 	Note, the position data supplied to the planet_creator() must be formatted
 	as a list of lists of length 3. That is, the following is an example of 
@@ -11,11 +12,11 @@ if __name__ == "__main__":
 	>>>> position_data = [[1, 0, 0], [1, 1, 0], [1, 2, 0], [1, 3, 0]]
 	"""
 
-	in_file = "invisoplanet_detection/data/sun_jupiter.json"
+	in_file = "invisoplanet_detection/data/sun_jupiter_saturn.json"
 	out_file = "invisoplanet_detection/data/testx.txt"
 
 	# run the n-body simulation
-	space_f = simulate(in_file, 20000, 0.2, out_file)
+	space_f = simulate(in_file, 10000, 0.5, out_file)
 
 	# find the final values of pos, vel, and mass
 	x, v, all_mass = space_f.arrayvals()
@@ -50,20 +51,13 @@ if __name__ == "__main__":
 	for i in range(n_bodies):
 		pi = planet_creator(all_pos[i], all_mass[i], all_colours[i])
 
+
 	# jupiter orbital parameters
 	a = 5.20336301  # semimajor axis, in AU
 	ecc = 0.04839266  # orbital eccentricity
-	T = 4332.589  # sidereal orbital period in days
-	omega = 2 * np.pi / T  # angular velocity
+	jupiter_orbit_params = [a, ecc]
 
-	# initial position in cartesian coordinates of jupiter
-	pos_sim = all_pos[1][0][:2]
-	r_sim = np.sqrt(np.sum(np.square(pos_sim)))
-	theta_sim = np.arctan2(pos_sim[1], pos_sim[0])
-	theta_peri = np.arccos(1 / ecc * (a * (1 - ecc**2) / r_sim - 1))
-
-
-	kep_x_pos, kep_y_pos = kepler_jupiter(20000, 0.2, theta_sim, theta_peri)
+	kep_x_pos, kep_y_pos, delta = kepler_test(10000, 0.5, jupiter_orbit_params, all_pos[1])
 	kep_z_pos = np.zeros(n_steps)
 
 	kep_pos = []
@@ -71,6 +65,8 @@ if __name__ == "__main__":
 		kep_pos.append([x, y, z])
 
 	pkep = planet_creator(kep_pos, all_mass[1]*1.1, all_colours[3])
+
+	print(delta)
 
 	# Run the animation!
 	pyglet.app.run()

@@ -216,16 +216,26 @@ def simulate(icfile, Niter, dt, filename):
     return space_i
 
 
-# function to generate position data for the solution to the kepler problem for two given masses and an
-# initial position. it is assumed that m1 is the more massive body and it's starting at x=0
-# m1 and m2 should also be defined in terms of solar masses, to make the units work
-def kepler_jupiter(Niter, dt, theta0, deltheta):
+# function to generate position data for the solution to the kepler problem for a given planet orbiting around a much
+# larger mass init_pos should be the initial cartesian x,y coordinates of the simulated data, and orbit_params should
+# be the orbital parameters of the the elliptical orbit, of the format [a, e] where a is the semi-major axis and
+# e is the eccentricity (all units AUs/days)
+def kepler_test(Niter, dt, orbit_params, sim_pos):
     # units involved
     m_sun = 1.989e30  # kg
     AU = 1.495979e11  # m
     day = 86400  # s
     # gravitational constant in these units
     G = 6.67408e-11 * m_sun * day ** 2 / AU ** 3
+    a, ecc = orbit_params
+
+    init_pos = sim_pos[0][:-1]
+    sim_pos = np.reshape(sim_pos, (-1, 3))
+
+    # initial position in cartesian coordinates of jupiter
+    r_sim = np.sqrt(np.sum(np.square(init_pos)))
+    theta_sim = np.arctan2(init_pos[1], init_pos[0])
+    theta_peri = np.arccos(1 / ecc * (a * (1 - ecc ** 2) / r_sim - 1)) + theta_sim
 
     # jupiter orbital parameters
     a = 5.20336301 # semimajor axis, in AU
@@ -236,17 +246,21 @@ def kepler_jupiter(Niter, dt, theta0, deltheta):
     x_arr = []
     y_arr = []
 
-    deltheta += theta0
+    for i in np.linspace(0, Niter * dt, Niter + 1):
 
-    for i in np.arange(Niter, step=dt):
-
-        theta = i * omega + theta0
-        r = a * (1 - ecc**2) / (1 + ecc*np.cos(theta - deltheta))
+        theta = i * omega + theta_sim
+        r = a * (1 - ecc**2) / (1 + ecc*np.cos(theta - theta_peri))
         x = r * np.cos(theta)
         y = r * np.sin(theta)
 
         x_arr.extend([x])
         y_arr.extend([y])
 
-    return x_arr, y_arr
+    # percent difference: (approximate value - exact value) / exact value
+    per_diff_x = np.divide(np.subtract(sim_pos.T[0], x_arr), x_arr)
+    per_diff_y = np.divide(np.subtract(sim_pos.T[1], y_arr), y_arr)
+
+    per_diff = [np.mean(per_diff_x), np.mean(per_diff_y)]
+
+    return x_arr, y_arr, per_diff
 
