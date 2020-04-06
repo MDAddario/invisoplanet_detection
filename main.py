@@ -55,6 +55,7 @@ if __name__ == "__main__":
 	# # jupiter orbital parameters
 	# a = 5.20336301  # semimajor axis, in AU
 	# ecc = 0.04839266  # orbital eccentricity
+	# T = T = 4330.595 # tropical orbital period in days
 	# jupiter_orbit_params = [a, ecc]
 	#
 	# kep_x_pos, kep_y_pos, delta = kepler_test(20000, 0.5, jupiter_orbit_params, all_pos[1])

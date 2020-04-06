@@ -218,8 +218,8 @@ def simulate(icfile, Niter, dt, filename):
 
 # function to generate position data for the solution to the kepler problem for a given planet orbiting around a much
 # larger mass init_pos should be the initial cartesian x,y coordinates of the simulated data, and orbit_params should
-# be the orbital parameters of the the elliptical orbit, of the format [a, e] where a is the semi-major axis and
-# e is the eccentricity (all units AUs/days)
+# be the orbital parameters of the the elliptical orbit, of the format [a, e, T] where a is the semi-major axis and
+# e is the eccentricity, and T is the period (all units AUs/tropical days)
 def kepler_test(Niter, dt, orbit_params, sim_pos):
     # units involved
     m_sun = 1.989e30  # kg
@@ -227,37 +227,36 @@ def kepler_test(Niter, dt, orbit_params, sim_pos):
     day = 86400  # s
     # gravitational constant in these units
     G = 6.67408e-11 * m_sun * day ** 2 / AU ** 3
-    a, ecc = orbit_params
+    # orbital parameters
+    a, ecc, T = orbit_params
+    omega = 2*np.pi/T # angular velocity
 
+    # reshape the simulation data into useable shapes
     sim_pos = np.array(sim_pos)[:, :-1]
-
     init_pos = sim_pos[0, :]
 
-    # initial position in cartesian coordinates of jupiter
+    # initial position in cartesian coordinates of jupiter (normalized to the angle the simulation data
+    # starts on)
     r_sim = np.sqrt(np.sum(np.square(init_pos)))
     theta_sim = np.arctan2(init_pos[1], init_pos[0])
     theta_peri = np.arccos(1 / ecc * (a * (1 - ecc ** 2) / r_sim - 1)) + theta_sim
 
-    # jupiter orbital parameters
-    a = 5.20336301 # semimajor axis, in AU
-    ecc = 0.04839266 # orbital eccentricity
-    T = 4330.595 # sidereal orbital period in days
-    omega = 2*np.pi/T # angular velocity
-
     x_arr = []
     y_arr = []
 
+    # kepler problem has constant angular velocity, so update by omega*dt each time
     for i in np.linspace(0, Niter * dt, Niter + 1):
 
-        theta = i * omega + theta_sim
-        r = a * (1 - ecc**2) / (1 + ecc*np.cos(theta - theta_peri))
+        theta = i * omega + theta_sim # angle as a function of time
+        r = a * (1 - ecc**2) / (1 + ecc*np.cos(theta - theta_peri)) # radius as a function of angle
+        # get cartesian coordinates from angle, radius
         x = r * np.cos(theta)
         y = r * np.sin(theta)
 
         x_arr.extend([x])
         y_arr.extend([y])
 
-    # percent difference: (approximate value - exact value) / exact value
+    # percent difference: (approximate value - exact value) / mean of the two
     per_diff_x = np.divide(np.subtract(sim_pos[:, 0], x_arr), (sim_pos[:, 0] + x_arr) / 2)
     per_diff_y = np.divide(np.subtract(sim_pos[:, 1], y_arr), (sim_pos[:, 1] + y_arr) / 2)
 
