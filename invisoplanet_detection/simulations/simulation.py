@@ -237,13 +237,17 @@ def kepler_jupiter(Niter, dt, theta0):
     y_arr = []
 
     for i in np.arange(Niter, step=dt):
-        theta = - theta0 + i * omega
+
+        theta = i * omega + theta0
         r = a * (1 - ecc**2) / (1 + ecc*np.cos(theta))
         x = r * np.cos(theta)
         y = r * np.sin(theta)
 
         x_arr.extend([x])
         y_arr.extend([y])
+
+        if i == 0:
+            print(theta, x, y)
 
     return x_arr, y_arr
 
