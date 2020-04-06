@@ -15,7 +15,7 @@ if __name__ == "__main__":
 	out_file = "invisoplanet_detection/data/testx.txt"
 
 	# run the n-body simulation
-	space_f = simulate(in_file, 10000, 0.5, out_file)
+	space_f = simulate(in_file, 20000, 0.2, out_file)
 
 	# find the final values of pos, vel, and mass
 	x, v, all_mass = space_f.arrayvals()
@@ -58,10 +58,12 @@ if __name__ == "__main__":
 
 	# initial position in cartesian coordinates of jupiter
 	pos_sim = all_pos[1][0][:2]
+	r_sim = np.sqrt(np.sum(np.square(pos_sim)))
 	theta_sim = np.arctan2(pos_sim[1], pos_sim[0])
+	theta_peri = np.arccos(1 / ecc * (a * (1 - ecc**2) / r_sim - 1))
 
 
-	kep_x_pos, kep_y_pos = kepler_jupiter(10000, 0.5, theta_sim)
+	kep_x_pos, kep_y_pos = kepler_jupiter(20000, 0.2, theta_sim, theta_peri)
 	kep_z_pos = np.zeros(n_steps)
 
 	kep_pos = []
