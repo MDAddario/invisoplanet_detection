@@ -1,0 +1,30 @@
+class Likelihood:
+
+    self.eta
+
+    extract_relevant_information_from_last_simulation():
+
+        """
+        Inputs:
+            - masses of hidden bodies
+        Outputs:
+            - self.surrogate[masses of hidden bodies] is updated
+        """
+
+        For example, extract the position data for every body at 10 evenly spaced times
+            from the last 10 % of the trajectory data,
+
+    configure_surrogate_model():
+        - Loops over masses and calls extract_relevant_information_from_last_simulation()
+        - Uses TQDM
+
+    configure_true_trajectory():
+        - Bind the trajectory that corresponds to the actual black box system
+
+    interpolate_relevant_information():
+        - Use interpolation to determine trajectory data from surrogate model
+
+    compute_gaussian_difference():
+        - Take the gaussian difference between the input data set and the true trajectories
+
+    MCMC_likelihood():
