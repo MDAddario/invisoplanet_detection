@@ -8,6 +8,16 @@ class TrajectoryInformation:
     from the last 10 % of the trajectory data.
     """
 
+    extract_information_from_file():
+        pass
+
+    compute_log_gaussian_difference():
+        pass
+
+    interpolate_information():
+        pass
+
+
 class Likelihood:
 
     """
@@ -21,13 +31,13 @@ class Likelihood:
         - self.unknown_bodies | int
             Max number of planets of unknown mass
 
-        - self.true_init_parameters | unsure
+        - self.true_init_parameters | unsure of dtype
             True initial parameters, including masses, positions, and velocities for both
             the known and unknown bodies
 
         - self.max_masses | list of floats
             Maximum possible masses for the unknown bodies
-            If unset, program will initialize these two double the mass of the largest body in the system
+            If unset, program will initialize these to double the mass of the largest body in the system
 
         - self.eta | float
             Scale parameter used in exponential likelihood function
@@ -38,7 +48,7 @@ class Likelihood:
             This number will correspond to each dimension of mass, i.e. for a model with 2 additional hidden
             bodies, there will be self.surrogate_points**2 points in interpolation space
 
-        - self.num_item | integer
+        - self.num_iter | integer
             Number of iterations to perform in MCMC
 
         - self.num_walkers | integer
@@ -55,6 +65,24 @@ class Likelihood:
             Information corresponding to the true planet trajectories
     """
 
+    __init__():
+
+        """
+        Sets the default parameters for the various user set attributes
+
+        Inputs:
+            - known_bodies
+            - unknown_bodies
+            - true_init_parameters
+            - max_masses
+            - eta
+            - surrogate_points
+            - num_iter
+            - num_walkers
+        Outputs:
+            - Updates the self. copy of all the inputs
+        """
+
     extract_trajectory_information():
 
         """
@@ -62,7 +90,6 @@ class Likelihood:
 
         Inputs:
             - masses of hidden bodies
-            - output_file name
         Outputs:
             - updates self.surrogate_model
         """
@@ -120,6 +147,8 @@ class Likelihood:
 
         """
         Serve as the function that will be passed to the MCMC iterator
+        Will incorcorate the prior: i.e., if masses are negative or greater than max_masses, this function
+        will return -np.inf
 
         Inputs:
             - theta
