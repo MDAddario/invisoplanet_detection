@@ -12,6 +12,17 @@ class TrajectoryInformation:
 	from the last 10 % of the trajectory data.
 	"""
 
+	def __init__(self, posdata, known_bodies):
+
+		all_pos = []
+		for i in range(known_bodies):
+			pi_idx = np.arange(i, len(posdata), step=known_bodies)
+
+			pi_xy_pos = posdata[pi_idx]
+
+			pi_x_pos = pi_xy_pos[:, 0]
+			pi_y_pos = pi_xy_pos[:, 1]
+
 	def extract_information_from_file(self):
 		pass
 
@@ -86,8 +97,8 @@ class Likelihood:
 			raise ValueError(
 				"The number of bodies in the initial conditions file does not match the number of bodies"
 				"specified by the sum of known and unknown bodies. Please make sure that there are bodies"
-				"in the initial conditions file even for bodies with zero mass. That is, if the system"
-				"consists of 2+0 (2 known bodies and 0 unknown) but you are detecting the presence of one"
+				"in the initial conditions file even for bodies with zero mass. That is, if the system truly"
+				"consists of 2+0 (2 known and 0 unknown bodies) but you are detecting the presence of one"
 				"possible additional planet, the initial conditions file should contain 3 bodies, with the"
 				"third one being of zero mass."
 			)
@@ -100,13 +111,17 @@ class Likelihood:
 		"""
 		For a given set of guess masses, run the simulation and return the trajectory information
 		"""
-		pass
-		# FOR THIS ONE I AM WAITING ON DD TO UPDATE THE SIMULATE API
 
 		# Run the n-body simulation
 		out_file = "invisoplanet_detection/data/likelihood_output.txt"
-		space_f = simulate(self.parameters_filename, self.num_iterations, self.time_step, out_file, unknown_masses)
-		return None
+		simulate(self.parameters_filename, self.num_iterations, self.time_step, out_file, unknown_masses)
+
+		# Extract the position data
+		with open(out_file, "r") as file:
+			posdata = np.genfromtxt(file)
+
+		# Return a reduced and formatted object
+		return TrajectoryInformation(posdata, self.known_bodies)
 
 	def construct_surrogate_model(self):
 		"""
