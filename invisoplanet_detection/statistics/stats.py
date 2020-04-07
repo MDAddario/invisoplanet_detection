@@ -1,3 +1,7 @@
+import numpy as np
+from tqdm import tqdm
+
+
 class TrajectoryInformation:
 	"""
 	Reduces the complete time-ordered phase space information into a smaller data set that
@@ -46,12 +50,6 @@ class Likelihood:
 		This number will correspond to each dimension of mass, i.e. for a model with 2 additional hidden
 		bodies, there will be self.surrogate_points**2 points in interpolation space
 
-	- self.num_iter | integer
-		Number of iterations to perform in MCMC
-
-	- self.num_walkers | integer
-		Number of walkers in MCMC
-
 	# CLASS SET ATTRIBUTES
 
 	- self.surrogate_model | n-dimensional array of type TrajectoryInformation
@@ -63,24 +61,33 @@ class Likelihood:
 		Information corresponding to the true planet trajectories
 	"""
 
-	def __init__(self):
-		pass
+	def __init__(self, known_bodies, unknown_bodies, true_init_parameters, max_masses, eta, surrogate_points):
+		"""
+		Sets the default parameters for the various user set attributes, and computes class set attributes
 
-	"""
-	Sets the default parameters for the various user set attributes
+		Inputs:
+			- known_bodies
+			- unknown_bodies
+			- true_init_parameters
+			- max_masses
+			- eta
+			- surrogate_points
+		Outputs:
+			- Updates the self. copy of all the inputs
+			- Constructs self.surrogate model and self.true_trajectory_information
+		"""
 
-	Inputs:
-		- known_bodies
-		- unknown_bodies
-		- true_init_parameters
-		- max_masses
-		- eta
-		- surrogate_points
-		- num_iter
-		- num_walkers
-	Outputs:
-		- Updates the self. copy of all the inputs
-	"""
+		# User set parameters
+		self.known_bodies = known_bodies
+		self.unknown_bodies = unknown_bodies
+		self.true_init_parameters = true_init_parameters
+		self.max_masses = max_masses
+		self.eta = eta
+		self.surrogate_points = surrogate_points
+
+		# Class set parameters
+		self.construct_surrogate_model()
+		self.configure_true_trajectory()
 
 	def extract_trajectory_information(self):
 		pass
@@ -95,6 +102,13 @@ class Likelihood:
 	"""
 
 	def construct_surrogate_model(self):
+
+		if self.unknown_bodies == 1:
+			self.surrogate_model = np.empty(self.surrogate_points, dtype=object)
+		elif self.unknown_bodies == 2:
+			self.surrogate_model = np.empty((self.surrogate_points, self.surrogate_points), dtype=object)
+		else:
+			raise ValueError("Number of unknown bodies cannot exceed 2 due to hard-coding considerations.")
 		pass
 
 	"""
