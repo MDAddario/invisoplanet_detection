@@ -178,6 +178,15 @@ def initialize(icfile, filename):
     return init_space, x_outfile
 
 
+# count the number of bodies present in the icfile
+def count_ic_bodies(icfile):
+    # read ic information from the file into a list of body objects
+    with open(icfile, "r") as file:
+        ics = json.load(file)
+
+    return len(ics["bodies"])
+
+
 # progress the simulation by a single time interval dt
 def iterate(space_i, dt):
     bodies_f = []

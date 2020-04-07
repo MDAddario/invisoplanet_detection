@@ -1,5 +1,6 @@
 import numpy as np
 from tqdm import tqdm
+from invisoplanet_detection.simulations import *
 
 
 class TrajectoryInformation:
@@ -80,6 +81,17 @@ class Likelihood:
 		self.eta = eta
 		self.surrogate_points = surrogate_points
 
+		# Check the specified number of bodies matches the initial conditions file
+		if count_ic_bodies(self.parameters_filename) != self.known_bodies + self.unknown_bodies:
+			raise ValueError(
+				"The number of bodies in the initial conditions file does not match the number of bodies"
+				"specified by the sum of known and unknown bodies. Please make sure that there are bodies"
+				"in the initial conditions file even for bodies with zero mass. That is, if the system"
+				"consists of 2+0 (2 known bodies and 0 unknown) but you are detecting the presence of one"
+				"possible additional planet, the initial conditions file should contain 3 bodies, with the"
+				"third one being of zero mass."
+			)
+
 		# Class set parameters
 		self.construct_surrogate_model()  # self.surrogate model
 		self.configure_true_trajectory()  # self.true_trajectory_information
@@ -88,7 +100,7 @@ class Likelihood:
 		pass
 
 	"""
-	For a given set of hidden masses, update the surrogate_model with trajectory information
+	For a given set of hidden masses, run the simulation and update the surrogate_model with trajectory information
 	
 	Inputs:
 		- masses of hidden bodies
@@ -108,7 +120,6 @@ class Likelihood:
 
 	"""
 	Loop over the entire sample space of unknown_masses and configure the surrogate model at each point
-	Requires simulation to be run and the information to be extracted
 	Use TQDM for this function
 	
 	Inputs:
