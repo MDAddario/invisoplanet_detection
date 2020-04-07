@@ -96,12 +96,17 @@ class Likelihood:
 		self.construct_surrogate_model()  # self.surrogate model
 		self.configure_true_trajectory()  # self.true_trajectory_information
 
-	def extract_trajectory_information(self, *unknown_masses):
+	def extract_trajectory_information(self, unknown_masses):
 		"""
 		For a given set of guess masses, run the simulation and return the trajectory information
 		"""
 		pass
 		# FOR THIS ONE I AM WAITING ON DD TO UPDATE THE SIMULATE API
+
+		# Run the n-body simulation
+		out_file = "invisoplanet_detection/data/likelihood_output.txt"
+		space_f = simulate(self.parameters_filename, self.num_iterations, self.time_step, out_file, unknown_masses)
+		return None
 
 	def construct_surrogate_model(self):
 		"""
@@ -119,7 +124,7 @@ class Likelihood:
 
 			# Construct the surrogate model
 			for index, mass_1 in enumerate(tqdm(mass_1_list, desc='Mass 1 list')):
-				self.surrogate_model[index] = self.extract_trajectory_information(mass_1)
+				self.surrogate_model[index] = self.extract_trajectory_information([mass_1])
 
 		elif self.unknown_bodies == 2:
 
@@ -133,7 +138,7 @@ class Likelihood:
 			# Construct the surrogate model
 			for i_1, mass_1 in enumerate(tqdm(mass_1_list, desc='Mass 1 list')):
 				for i_2, mass_2 in enumerate(tqdm(mass_2_list, desc='Mass 2 list')):
-					self.surrogate_model[i_1, i_2] = self.extract_trajectory_information(mass_1, mass_2)
+					self.surrogate_model[i_1, i_2] = self.extract_trajectory_information([mass_1, mass_2])
 
 		else:
 			raise ValueError(
