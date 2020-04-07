@@ -1,7 +1,9 @@
 # Import the animations submodule
 from invisoplanet_detection.animations import *
+from invisoplanet_detection.simulations import *
 
 if __name__ == "__main__":
+
 
 	"""
 	Note, the position data supplied to the planet_creator() must be formatted
@@ -10,31 +12,62 @@ if __name__ == "__main__":
 	>>>> position_data = [[1, 0, 0], [1, 1, 0], [1, 2, 0], [1, 3, 0]]
 	"""
 
-	# Create sample position data
-	parameter = np.linspace(0, 1, num=120)
-	p1_x_pos = 10 * np.cos(2 * np.pi * parameter - np.pi / 4) - 5
-	p1_y_pos = 10 * np.sin(2 * np.pi * parameter - np.pi / 4) - 5
-	p1_z_pos = np.zeros(len(parameter))
+	in_file = "invisoplanet_detection/data/binary.json"
+	out_file = "invisoplanet_detection/data/testx.txt"
 
-	p1_pos = []
-	for x, y, z in zip(p1_x_pos, p1_y_pos, p1_z_pos):
-		p1_pos.append([x, y, z])
+	# run the n-body simulation
+	space_f = simulate(in_file, 20000, 0.5, out_file)
 
-	p2_x_pos = -10 * np.sin(2 * np.pi * parameter + np.pi) + 5
-	p2_y_pos = -10 * np.cos(2 * np.pi * parameter + np.pi) + 5
-	p2_z_pos = np.zeros(len(parameter))
+	# find the final values of pos, vel, and mass
+	x, v, all_mass = space_f.arrayvals()
 
-	p2_pos = []
-	for x, y, z in zip(p2_x_pos, p2_y_pos, p2_z_pos):
-		p2_pos.append([x, y, z])
+	n_bodies = len(space_f.bodies)
 
-	# Create sample masses
-	p1_mass = 4
-	p2_mass = p1_mass
+	with open(out_file, "r") as file:
+		posdata = np.genfromtxt(file)
 
-	# Create planet models
-	p1 = planet_creator(p1_pos, p1_mass, "red")
-	p2 = planet_creator(p2_pos, p2_mass, "blue")
+	n_steps = int(len(posdata)/n_bodies)
+
+	all_pos = []
+	for i in range(n_bodies):
+		pi_idx = np.arange(i, len(posdata), step=n_bodies)
+
+		pi_xy_pos = posdata[pi_idx]
+
+		pi_x_pos = pi_xy_pos[:, 0]
+		pi_y_pos = pi_xy_pos[:, 1]
+		pi_z_pos = np.zeros(n_steps)
+
+		pi_pos = []
+		for x, y, z in zip(pi_x_pos, pi_y_pos, pi_z_pos):
+			pi_pos.append([x, y, z])
+
+		all_pos.append(pi_pos)
+
+	all_colours = ["red", "blue", "yellow", "green"]
+
+
+	# all_planets = []
+	for i in range(n_bodies):
+		pi = planet_creator(all_pos[i], all_mass[i], all_colours[i])
+
+	#
+	# # jupiter orbital parameters
+	# a = 5.20336301  # semimajor axis, in AU
+	# ecc = 0.04839266  # orbital eccentricity
+	# T = T = 4330.595 # tropical orbital period in days
+	# jupiter_orbit_params = [a, ecc]
+	#
+	# kep_x_pos, kep_y_pos, delta = kepler_test(20000, 0.5, jupiter_orbit_params, all_pos[1])
+	# kep_z_pos = np.zeros(n_steps)
+	#
+	# kep_pos = []
+	# for x, y, z in zip(kep_x_pos, kep_y_pos, kep_z_pos):
+	# 	kep_pos.append([x, y, z])
+	#
+	# pkep = planet_creator(kep_pos, all_mass[1]*1.1, all_colours[3])
+	#
+	# print(delta)
 
 	# Run the animation!
 	pyglet.app.run()

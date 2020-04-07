@@ -61,4 +61,26 @@ To determine how many additional planets will be involved, we will apply model s
 
 \end{enumerate}
 
+
+    \section{Physical Background}
+
+    Simple deterministic Hamiltonian simulation based on the interaction between pairs of gravitationally bound bodies:
+
+    \begin{equation}\label{eq:Fij}
+        \vec{F}_{ij} = \frac{G m_i m_j}{|| \vec{q}_i - \vec{q}_j} (\vec{q}_i - \vec{q}_j)
+    \end{equation}
+
+    is the force acting on one body with with $m_i$, position $\vec{q}_i$ from another body with mass $m_i$ and position
+    $\vec{q}_j$.
+
+    Summing over all contributions, the equation of motion for a single body is therefore
+
+    \begin{equation}\label{eq:EoMofbodyi}
+        m_i \frac{\mathrm{d}^2 \vec{q}_i}{\mathrm{d} t^2} =
+        \sum^n_{j=1, j\neq i} \frac{G m_i m_j}{|| \vec{q}_i - \vec{q}_j} (\vec{q}_i - \vec{q}_j).
+    \end{equation}
+
+    Integrating the acceleration over the required time interval yields the position and velocity of the body after
+    that time has passed.
+
 \end{document}
