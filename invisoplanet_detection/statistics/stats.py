@@ -23,8 +23,6 @@ class TrajectoryInformation:
 
 class Likelihood:
 	"""
-	Attributes:
-
 	# USER SET ATTRIBUTES
 
 	- self.known_bodies | int
@@ -33,9 +31,14 @@ class Likelihood:
 	- self.unknown_bodies | int
 		Max number of planets of unknown mass
 
-	- self.true_init_parameters | unsure of dtype
-		True initial parameters, including masses, positions, and velocities for both
-		the known and unknown bodies
+	- self.parameters_filename | string
+		Filename used to retrieve the initial conditions for the bodies
+
+	- self.num_iterations | int
+		Number of iterations of the simulation to perform
+
+	- self.time_step | float
+		The value for dt used when conducting the simulations
 
 	- self.max_masses | list of floats
 		Maximum possible masses for the unknown bodies
@@ -61,33 +64,25 @@ class Likelihood:
 		Information corresponding to the true planet trajectories
 	"""
 
-	def __init__(self, known_bodies, unknown_bodies, true_init_parameters, max_masses, eta, surrogate_points):
+	def __init__(self, known_bodies, unknown_bodies, parameters_filename, num_iterations, time_step,
+	             max_masses, eta, surrogate_points):
 		"""
 		Sets the default parameters for the various user set attributes, and computes class set attributes
-
-		Inputs:
-			- known_bodies
-			- unknown_bodies
-			- true_init_parameters
-			- max_masses
-			- eta
-			- surrogate_points
-		Outputs:
-			- Updates the self. copy of all the inputs
-			- Constructs self.surrogate model and self.true_trajectory_information
 		"""
 
 		# User set parameters
 		self.known_bodies = known_bodies
 		self.unknown_bodies = unknown_bodies
-		self.true_init_parameters = true_init_parameters
+		self.parameters_filename = parameters_filename
+		self.num_iterations = num_iterations
+		self.time_step = time_step
 		self.max_masses = max_masses
 		self.eta = eta
 		self.surrogate_points = surrogate_points
 
 		# Class set parameters
-		self.construct_surrogate_model()
-		self.configure_true_trajectory()
+		self.construct_surrogate_model()  # self.surrogate model
+		self.configure_true_trajectory()  # self.true_trajectory_information
 
 	def extract_trajectory_information(self):
 		pass
