@@ -144,12 +144,8 @@ class Likelihood:
 		"""
 		Run the simulation that corresponds to the true masses of the unknown bodies and save the trajectory information
 		"""
-		pass
-		# FOR THIS ONE I AM WAITING ON DD TO UPDATE THE SIMULATE API
-
-		# ... somehow extract the unknown masses from file ...
-		true_masses = None
-		self.true_trajectory_information = self.extract_trajectory_information(true_masses)
+		true_unknown_masses = extract_unknown_ic_masses(self.parameters_filename, self.known_bodies)
+		self.true_trajectory_information = self.extract_trajectory_information(true_unknown_masses)
 
 	def interpolate_trajectory_information(self):
 		pass
