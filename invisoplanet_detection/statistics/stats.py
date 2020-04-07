@@ -96,37 +96,49 @@ class Likelihood:
 		self.construct_surrogate_model()  # self.surrogate model
 		self.configure_true_trajectory()  # self.true_trajectory_information
 
-	def extract_trajectory_information(self):
+	def extract_trajectory_information(self, *unknown_masses):
+		"""
+		For a given set of guess masses, run the simulation and return the trajectory information
+		"""
 		pass
-
-	"""
-	For a given set of hidden masses, run the simulation and update the surrogate_model with trajectory information
-	
-	Inputs:
-		- masses of hidden bodies
-	Outputs:
-		- updates self.surrogate_model
-	"""
+		# FOR THIS ONE I AM WAITING ON DD TO UPDATE THE SIMULATE API
 
 	def construct_surrogate_model(self):
+		"""
+		Loop over the entire sample space of unknown_masses and configure the surrogate model at each point
+		"""
 
+		# Treat cases differently depending on the number of unknown bodies
 		if self.unknown_bodies == 1:
-			self.surrogate_model = np.empty(self.surrogate_points, dtype=object)
-		elif self.unknown_bodies == 2:
-			self.surrogate_model = np.empty((self.surrogate_points, self.surrogate_points), dtype=object)
-		else:
-			raise ValueError("Number of unknown bodies cannot exceed 2 due to hard-coding considerations.")
-		pass
 
-	"""
-	Loop over the entire sample space of unknown_masses and configure the surrogate model at each point
-	Use TQDM for this function
-	
-	Inputs:
-		- Mass space to be searched
-	Outputs:
-		- constructs self.surrogate_model
-	"""
+			# Allocate memory for surrogate model
+			self.surrogate_model = np.empty(self.surrogate_points, dtype=object)
+
+			# Determine mass values to simulate
+			mass_1_list = np.linspace(0, self.max_masses[0], num=self.surrogate_points)
+
+			# Construct the surrogate model
+			for index, mass_1 in enumerate(tqdm(mass_1_list, desc='Mass 1 list')):
+				self.surrogate_model[index] = self.extract_trajectory_information(mass_1)
+
+		elif self.unknown_bodies == 2:
+
+			# Allocate memory for surrogate model
+			self.surrogate_model = np.empty((self.surrogate_points, self.surrogate_points), dtype=object)
+
+			# Determine mass values to simulate
+			mass_1_list = np.linspace(0, self.max_masses[0], num=self.surrogate_points)
+			mass_2_list = np.linspace(0, self.max_masses[1], num=self.surrogate_points)
+
+			# Construct the surrogate model
+			for i_1, mass_1 in enumerate(tqdm(mass_1_list, desc='Mass 1 list')):
+				for i_2, mass_2 in enumerate(tqdm(mass_2_list, desc='Mass 2 list')):
+					self.surrogate_model[i_1, i_2] = self.extract_trajectory_information(mass_1, mass_2)
+
+		else:
+			raise ValueError(
+				"Number of unknown bodies cannot exceed 1 due to hard-coding considerations."
+			)
 
 	def configure_true_trajectory(self):
 		pass
