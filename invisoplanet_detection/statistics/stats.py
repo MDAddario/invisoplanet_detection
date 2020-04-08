@@ -89,6 +89,7 @@ class TrajectoryInformation:
 			return -np.inf
 		return difference
 
+
 class Likelihood:
 	"""
 	# USER SET ATTRIBUTES
@@ -312,3 +313,12 @@ if __name__ == "__main__":
 	plt.ylabel(r'Posterior probability $p(m_1)$')
 	plt.savefig('Sample_posterior.png')
 	plt.show()
+
+"""
+GOALS:
+	- Deletes output file
+	- Make method for posterior plot generation
+	- Make compatible with unknown_bodies = 2
+	- Add parameters first_n, last_n to deal with either the first n% or last n% of the position data
+	- Add unit tests
+"""
