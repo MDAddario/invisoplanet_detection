@@ -48,30 +48,47 @@ class TrajectoryInformation:
 		# Treat cases differently depending on the number of unknown bodies
 		if likelihood.unknown_bodies == 1:
 
-			# We only have one body to worry about
-			guess_mass_1 = guess_masses[0]
+			return TrajectoryInformation.interpolate(guess_masses[0], likelihood.mass_1_arr, likelihood.surrogate_model)
 
-			# Create the new trajectory object (purposely no constructor call)
+		elif likelihood.unknown_bodies == 2:
+
+			# Interpolate for mass 1
+			horizontal = TrajectoryInformation.interpolate(guess_masses[0], likelihood.mass_1_arr,
+															likelihood.surrogate_model)
+
+			# Interpolate for mass 2
+			vertical = TrajectoryInformation.interpolate(guess_masses[1], likelihood.mass_2_arr,
+															likelihood.surrogate_model)
+
+			# Average them out
 			trajectory = TrajectoryInformation
-
-			# Determine indices of nearest interpolation objects
-			index = np.interp(guess_mass_1, likelihood.mass_1_arr, np.arange(likelihood.surrogate_points))
-			left_index = int(index)
-			right_index = left_index + 1
-			weight = index - left_index
-
-			# Handle right edge case!
-			if right_index == len(likelihood.mass_1_arr):
-				right_index -= 1
-
-			# Interpolate!
-			trajectory.pos_data = likelihood.surrogate_model[left_index].pos_data * (1 - weight) \
-								+ likelihood.surrogate_model[right_index].pos_data * weight
-
+			trajectory.pos_data = (horizontal.pos_data + vertical.pos_data) / 2
 			return trajectory
 
 		else:
 			Likelihood.hardcoded_error_message()
+
+	@staticmethod
+	def interpolate(guess_mass, mass_array, surrogate_model):
+
+		# Create the new trajectory object (purposely no constructor call)
+		trajectory = TrajectoryInformation
+
+		# Determine indices of nearest interpolation objects
+		index = np.interp(guess_mass, mass_array, np.arange(len(mass_array)))
+		left_index = int(index)
+		right_index = left_index + 1
+		weight = index - left_index
+
+		# Handle right edge case!
+		if right_index == len(mass_array):
+			right_index -= 1
+
+		# Interpolate!
+		trajectory.pos_data = surrogate_model[left_index].pos_data * (1 - weight) \
+							+ surrogate_model[right_index].pos_data * weight
+
+		return trajectory
 
 	@staticmethod
 	def log_gaussian_difference(cur_trajectory, true_trajectory, eta):
@@ -126,6 +143,10 @@ class Likelihood:
 		Mass values for unknown body 1 corresponding to the surrogate model points
 		Used for interpolation
 
+	- self.mass_2_arr | array of floats
+		Mass values for unknown body 2 corresponding to the surrogate model points
+		Used for interpolation
+
 	- self.surrogate_model | n-dimensional array of type TrajectoryInformation
 		Array containing the trajectory information for the planetary trajectories
 		Array will have self.unknown_bodies indices
@@ -151,8 +172,8 @@ class Likelihood:
 		self.eta = eta
 		self.surrogate_points = surrogate_points
 
-		# Let everyone know that you hard coded the fact that you're only checking for one additional planet
-		if self.unknown_bodies > 2:
+		# Let everyone know that you hard coded the fact that you're only checking for one or two additional planets
+		if self.unknown_bodies not in [1, 2]:
 			Likelihood.hardcoded_error_message()
 
 		# Check the specified number of bodies matches the initial conditions file
@@ -161,15 +182,16 @@ class Likelihood:
 				"The number of bodies in the initial conditions file does not match the number of bodies"
 				"specified by the sum of known and unknown bodies. Please make sure that there are bodies"
 				"in the initial conditions file even for bodies with zero mass. That is, if the system truly"
-				"consists of 2+0 (2 known and 0 unknown bodies) but you are detecting the presence of one"
-				"possible additional planet, the initial conditions file should contain 3 bodies, with the"
-				"third one being of zero mass."
+				"consists of 2_0_1 (2 known bodies, 0 unknown, detecting up to 1 additional planet), then the"
+				"initial conditions file should contain 3 bodies, with the third one being of zero mass."
 			)
 
 		# Class set parameters
 		self.mass_1_arr = None
+		self.mass_2_arr = None
 		self.surrogate_model = None
 		self.construct_surrogate_model()
+
 		self.true_trajectory_information = None
 		self.configure_true_trajectory()
 
@@ -217,6 +239,20 @@ class Likelihood:
 			# Construct the surrogate model
 			for index, mass_1 in enumerate(tqdm(self.mass_1_arr, desc='Mass 1 list')):
 				self.surrogate_model[index] = self.extract_trajectory_information([mass_1])
+
+		elif self.unknown_bodies == 2:
+
+			# Allocate memory for surrogate model
+			self.surrogate_model = np.empty((self.surrogate_points, self.surrogate_points), dtype=object)
+
+			# Determine mass values to simulate
+			self.mass_1_arr = np.linspace(0, self.max_masses[0], num=self.surrogate_points)
+			self.mass_2_arr = np.linspace(0, self.max_masses[1], num=self.surrogate_points)
+
+			# Construct the surrogate model
+			for i_1, mass_1 in enumerate(tqdm(self.mass_1_arr, desc='Mass 1 list')):
+				for i_2, mass_2 in enumerate(tqdm(self.mass_2_arr, desc='Mass 2 list')):
+					self.surrogate_model[i_1, i_2] = self.extract_trajectory_information([mass_1, mass_2])
 
 		else:
 			Likelihood.hardcoded_error_message()
@@ -320,7 +356,7 @@ if __name__ == "__main__":
 """
 GOALS:
 	- Make method for posterior plot generation
-	- Make compatible with unknown_bodies = 2
 	- Add parameters first_n, last_n to deal with either the first n% or last n% of the position data
+	- Consider changing zero masses to epsilon masses
 	- Add unit tests
 """
