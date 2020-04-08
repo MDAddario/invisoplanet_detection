@@ -59,9 +59,13 @@ class TrajectoryInformation:
 			right_index = left_index + 1
 			weight = index - left_index
 
+			# Handle right edge case!
+			if right_index == len(likelihood.mass_1_arr):
+				right_index -= 1
+
 			# Interpolate!
-			trajectory.pos_data = likelihood.surrogate_model[left_index].pos_data * weight \
-								+ likelihood.surrogate_model[right_index].pos_data * (1 - weight)
+			trajectory.pos_data = likelihood.surrogate_model[left_index].pos_data * (1 - weight) \
+								+ likelihood.surrogate_model[right_index].pos_data * weight
 
 			return trajectory
 
@@ -78,8 +82,12 @@ class TrajectoryInformation:
 		In reality, returns the log of the gaussian differences
 		Difference should only be computed for the trajectories of the KNOWN bodies
 		"""
-		return -0.5 * np.sum(np.square(cur_trajectory.pos_data - true_trajectory.pos_data) / eta + np.log(eta))
+		difference = -0.5 * np.sum(np.square(cur_trajectory.pos_data - true_trajectory.pos_data) / eta + np.log(eta))
 
+		# Handle nans
+		if np.isnan(difference):
+			return -np.inf
+		return difference
 
 class Likelihood:
 	"""
@@ -270,15 +278,37 @@ if __name__ == "__main__":
 	num_iterations = 20000
 	time_step = 0.5
 	max_masses = [0.000285802 * 2]
-	eta = 1e-4
-	surrogate_points = 5
+	eta = 1
+	surrogate_points = 11
 
 	# Construct the likelihood object
 	likelihood = Likelihood(known_bodies, unknown_bodies, parameters_filename, num_iterations, time_step,
 							max_masses, eta, surrogate_points)
 
-	# Print the surrogate model gaussian differences
+	# Compute the surrogate model gaussian differences
+	surrogate_logs = []
+	for i in tqdm(range(likelihood.surrogate_points), desc='Surrogate model'):
+		surrogate_logs.append(TrajectoryInformation.log_gaussian_difference(likelihood.surrogate_model[i],
+										likelihood.true_trajectory_information, likelihood.eta))
 
-	# Print a high density grid of model gaussian differences
+	# Compute the interpolated model gaussian differences
+	posterior_logs = []
+	interp_masses = np.linspace(0, max_masses[0], num=100)
+	for mass_1 in tqdm(interp_masses, desc='Interpolation'):
+		posterior_logs.append(likelihood.log_posterior([mass_1]))
 
-	exit()
+	"""
+	Note that we expect there to be a local maximum at the true mass of planet 3, with a value
+	of 0 for the logarithm when eta=1
+	"""
+
+	import matplotlib.pyplot as plt
+	plt.scatter(likelihood.mass_1_arr, surrogate_logs, label="Surrogate model posterior")
+	plt.plot(interp_masses, posterior_logs, label="Interpolated posterior")
+	plt.axvline(max_masses[0] / 2, label="True mass")
+	plt.legend()
+	plt.xlim([0, max_masses[0]])
+	plt.xlabel(r'Guess mass for 1st unknown planet $m_1$')
+	plt.ylabel(r'Posterior probability $p(m_1)$')
+	plt.savefig('Sample_posterior.png')
+	plt.show()
