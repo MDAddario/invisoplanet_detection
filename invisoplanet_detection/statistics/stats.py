@@ -59,7 +59,7 @@ class TrajectoryInformation:
 
 			# Interpolate!
 			trajectory.pos_data = likelihood.surrogate_model[left_index] * weight \
-								+ likelihood.surrogate_model[right_index * (1 - weight)]
+								+ likelihood.surrogate_model[right_index] * (1 - weight)
 
 			return trajectory
 
@@ -68,8 +68,15 @@ class TrajectoryInformation:
 				"Number of unknown bodies cannot exceed 1 due to hard-coding considerations."
 			)
 
-	def compute_log_gaussian_difference(self):
-		pass
+	@staticmethod
+	def log_gaussian_difference(cur_trajectory, true_trajectory, eta):
+		"""
+		Computes the gaussian difference between the TrajectoryInformation corresponding to the current guess
+		of unknown masses and the true masses.
+		In reality, returns the log of the gaussian differences
+		Difference should only be computed for the trajectories of the KNOWN bodies
+		"""
+		return -0.5 * np.sum(np.square(cur_trajectory.pos_data - true_trajectory.pos_data) / eta + np.log(eta))
 
 
 class Likelihood:
@@ -212,37 +219,32 @@ class Likelihood:
 		"""
 		return TrajectoryInformation.interpolate_information(self, guess_masses)
 
-	def MCMC_log_likelihood(self):
-		pass
+	def log_likelihood(self, guess_masses):
+		"""
+		Computes the gaussian difference between the TrajectoryInformation corresponding to the current guess
+		of unknown masses and the true masses.
+		In reality, returns the log of the gaussian differences
+		Difference should only be computed for the trajectories of the KNOWN bodies
+		"""
+		# Determine the trajectory associated with the guess masses
+		trajectory = self.interpolate_trajectory_information(guess_masses)
 
-	"""
-	Computes the gaussian difference between the TrajectoryInformation corresponding to the current guess
-	of unknown masses and the true masses.
-	In reality, returns the log of the gaussian differences
-	Difference should only be computed for the trajectories of the KNOWN bodies
-	
-	Inputs:
-		- Guess of unknown masses
-	Outputs:
-		- Float (the difference evaluation)
-	"""
+		# Compute the log gaussian difference between the trajectories
+		return TrajectoryInformation.log_gaussian_difference(trajectory, self.true_trajectory_information, self.eta)
 
-	def MCMC_log_posterior(self):
-		pass
+	def log_posterior(self, guess_masses, x, y, y_err):
+		"""
+		Serve as the function that will be passed to the MCMC iterator
+		Will incorporate the prior: i.e., if masses are negative or greater than max_masses, this function
+		will return -np.inf
+		"""
+		# Check masses are within the bounds
+		for guess_mass, max_mass in zip(guess_masses, self.max_masses):
+			if not 0 <= guess_masses <= max_mass:
+				return -np.inf
 
-	"""
-	Serve as the function that will be passed to the MCMC iterator
-	Will incorcorate the prior: i.e., if masses are negative or greater than max_masses, this function
-	will return -np.inf
-
-	Inputs:
-		- theta
-		- x
-		- y
-		- yerr
-	Outputs:
-		- Float (posterior log)
-	"""
+		# Else return the likelihood
+		return self.log_likelihood(guess_masses)
 
 
 if __name__ == "__main__":
