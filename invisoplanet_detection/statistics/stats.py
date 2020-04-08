@@ -206,10 +206,15 @@ class Likelihood:
 			"Please set the unknown_bodies field to either 1 or 2."
 		)
 
-	def extract_trajectory_information(self, unknown_masses):
+	def extract_trajectory_information(self, unknown_masses, epsilon=1e-16):
 		"""
 		For a given set of guess masses, run the simulation and return the trajectory information
 		"""
+
+		# If masses are zero, set to epsilon to avoid nans
+		for i in range(len(unknown_masses)):
+			if unknown_masses[i] == 0:
+				unknown_masses[i] = epsilon
 
 		# Run the n-body simulation
 		os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -358,10 +363,10 @@ if __name__ == "__main__":
 	# Setup the likelihood object
 	known_bodies = 2
 	unknown_bodies = 1
-	parameters_filename = "../data/sun_jupiter_saturn_2_1_1.json"
+	parameters_filename = "../data/sun_jup_2_0_1.json"
 	num_iterations = 20000
 	time_step = 0.5
-	max_masses = [0.000285802 * 2]
+	max_masses = [9.547919e-4]
 	eta = 1
 	surrogate_points = 3
 
@@ -375,6 +380,6 @@ if __name__ == "__main__":
 """
 GOALS:
 	- Add parameters first_n, last_n to deal with either the first n% or last n% of the position data
-	- Consider changing zero masses to epsilon masses
+	- Visualize posterior for 2D
 	- Add unit tests
 """
