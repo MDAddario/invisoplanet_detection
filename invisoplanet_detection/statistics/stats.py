@@ -60,8 +60,8 @@ class TrajectoryInformation:
 			weight = index - left_index
 
 			# Interpolate!
-			trajectory.pos_data = likelihood.surrogate_model[left_index] * weight \
-								+ likelihood.surrogate_model[right_index] * (1 - weight)
+			trajectory.pos_data = likelihood.surrogate_model[left_index].pos_data * weight \
+								+ likelihood.surrogate_model[right_index].pos_data * (1 - weight)
 
 			return trajectory
 
@@ -164,7 +164,7 @@ class Likelihood:
 		# Class set parameters
 		self.mass_1_arr = None
 		self.surrogate_model = None
-		#self.construct_surrogate_model()
+		self.construct_surrogate_model()
 		self.true_trajectory_information = None
 		self.configure_true_trajectory()
 
@@ -213,8 +213,6 @@ class Likelihood:
 		Run the simulation that corresponds to the true masses of the unknown bodies and save the trajectory information
 		"""
 		true_unknown_masses = extract_unknown_ic_masses(self.parameters_filename, self.known_bodies)
-		print(true_unknown_masses)
-		exit()
 		self.true_trajectory_information = self.extract_trajectory_information(true_unknown_masses)
 
 	def interpolate_trajectory_information(self, guess_masses):
@@ -245,7 +243,7 @@ class Likelihood:
 		"""
 		# Check masses are within the bounds
 		for guess_mass, max_mass in zip(guess_masses, self.max_masses):
-			if not 0 <= guess_masses <= max_mass:
+			if not 0 <= guess_mass <= max_mass:
 				return -np.inf
 
 		# Else return the likelihood
@@ -271,7 +269,7 @@ if __name__ == "__main__":
 	parameters_filename = "../data/sun_jupiter_saturn_2_1_1.json"
 	num_iterations = 20000
 	time_step = 0.5
-	max_masses = [1]
+	max_masses = [0.000285802 * 2]
 	eta = 1e-4
 	surrogate_points = 5
 
@@ -279,7 +277,8 @@ if __name__ == "__main__":
 	likelihood = Likelihood(known_bodies, unknown_bodies, parameters_filename, num_iterations, time_step,
 							max_masses, eta, surrogate_points)
 
-	# Use the posterior function
-	likelihood.log_posterior([1e-5])
+	# Print the surrogate model gaussian differences
+
+	# Print a high density grid of model gaussian differences
 
 	exit()
