@@ -1,5 +1,6 @@
-from tqdm import tqdm
 import os
+from tqdm import tqdm
+import matplotlib.pyplot as plt
 from invisoplanet_detection.simulations import *
 
 
@@ -191,6 +192,9 @@ class Likelihood:
 		with open(out_file, "r") as file:
 			posdata = np.genfromtxt(file)
 
+		# Delete the file
+		os.remove(out_file)
+
 		# Return a reduced and formatted object
 		return TrajectoryInformation(posdata, self.known_bodies, self.unknown_bodies)
 
@@ -303,7 +307,6 @@ if __name__ == "__main__":
 	of 0 for the logarithm when eta=1
 	"""
 
-	import matplotlib.pyplot as plt
 	plt.scatter(likelihood.mass_1_arr, surrogate_logs, label="Surrogate model posterior")
 	plt.plot(interp_masses, posterior_logs, label="Interpolated posterior")
 	plt.axvline(max_masses[0] / 2, label="True mass")
@@ -311,12 +314,12 @@ if __name__ == "__main__":
 	plt.xlim([0, max_masses[0]])
 	plt.xlabel(r'Guess mass for 1st unknown planet $m_1$')
 	plt.ylabel(r'Posterior probability $p(m_1)$')
-	plt.savefig('Sample_posterior.png')
+	plt.savefig('Sample_posterior.pdf')
 	plt.show()
 
 """
 GOALS:
-	- Deletes output file
+	- Make function for hardcoding error message
 	- Make method for posterior plot generation
 	- Make compatible with unknown_bodies = 2
 	- Add parameters first_n, last_n to deal with either the first n% or last n% of the position data
