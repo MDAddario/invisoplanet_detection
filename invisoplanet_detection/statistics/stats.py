@@ -1,4 +1,3 @@
-import numpy as np
 from tqdm import tqdm
 from invisoplanet_detection.simulations import *
 
@@ -13,15 +12,20 @@ class TrajectoryInformation:
 	"""
 
 	def __init__(self, posdata, known_bodies):
-
+		"""
+		axis 0 = time_step
+		axis 1 = position_coordinate
+		axis 2 = body index
+		"""
+		# Aggregate the position data into a 3D matrix
 		all_pos = []
+
 		for i in range(known_bodies):
 			pi_idx = np.arange(i, len(posdata), step=known_bodies)
+			all_pos.append(posdata[pi_idx])
 
-			pi_xy_pos = posdata[pi_idx]
-
-			pi_x_pos = pi_xy_pos[:, 0]
-			pi_y_pos = pi_xy_pos[:, 1]
+		# Store the data as the only attribute
+		self.pos_data = np.stack(all_pos, axis=2)
 
 	def extract_information_from_file(self):
 		pass
@@ -104,8 +108,10 @@ class Likelihood:
 			)
 
 		# Class set parameters
-		self.construct_surrogate_model()  # self.surrogate model
-		self.configure_true_trajectory()  # self.true_trajectory_information
+		self.surrogate_model = None
+		self.construct_surrogate_model()
+		self.true_trajectory_information = None
+		self.configure_true_trajectory()
 
 	def extract_trajectory_information(self, unknown_masses):
 		"""
@@ -157,7 +163,7 @@ class Likelihood:
 
 		else:
 			raise ValueError(
-				"Number of unknown bodies cannot exceed 1 due to hard-coding considerations."
+				"Number of unknown bodies cannot exceed 2 due to hard-coding considerations."
 			)
 
 	def configure_true_trajectory(self):
