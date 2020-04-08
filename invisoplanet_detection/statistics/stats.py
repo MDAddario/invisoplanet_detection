@@ -311,40 +311,50 @@ class Likelihood:
 		"""
 		Plot the posterior associated with the optimization problem
 		"""
-		# Compute the surrogate model gaussian differences
-		surrogate_logs = []
-		for i in range(self.surrogate_points):
-			surrogate_logs.append(TrajectoryInformation.log_gaussian_difference(self.surrogate_model[i],
-									self.true_trajectory_information, self.eta))
+		# Treat cases differently depending on the number of unknown bodies
+		if self.unknown_bodies == 1:
 
-		# Compute the interpolated model gaussian differences
-		posterior_logs = []
-		interp_masses = np.linspace(0, self.max_masses[0], num=num)
-		for mass_1 in interp_masses:
-			posterior_logs.append(self.log_posterior([mass_1]))
+			# Compute the surrogate model gaussian differences
+			surrogate_logs = []
+			for i in range(self.surrogate_points):
+				surrogate_logs.append(TrajectoryInformation.log_gaussian_difference(self.surrogate_model[i],
+										self.true_trajectory_information, self.eta))
 
-		"""
-		Note that we expect there to be a local maximum at the true mass of planet 3, with a value
-		of 0 for the logarithm when eta=1
-		"""
+			# Compute the interpolated model gaussian differences
+			posterior_logs = []
+			interp_masses = np.linspace(0, self.max_masses[0], num=num)
+			for mass_1 in interp_masses:
+				posterior_logs.append(self.log_posterior([mass_1]))
 
-		# Create MPL figure
-		fig = plt.figure(figsize=(16, 9))
-		ax = fig.add_subplot(111)
-		font = 20
+			"""
+			Note that we expect there to be a local maximum at the true mass of planet 3, with a value
+			of 0 for the logarithm when eta=1
+			"""
 
-		ax.scatter(self.mass_1_arr, surrogate_logs, c='blue', label="Surrogate model posterior")
-		ax.plot(interp_masses, posterior_logs, c='blue', label="Interpolated posterior")
-		ax.axvline(self.true_unknown_masses[0], c='red', label="True mass")
-		ax.legend(fontsize=font)
-		ax.set_xlim([0, self.max_masses[0]])
-		ax.set_xlabel(r'Mass of 1st invisible body $m_1$', fontsize=font)
-		ax.set_ylabel(r'Log. posterior probability $\log[P(m_1)]$', fontsize=font)
-		ax.tick_params(axis='both', which='major', labelsize=font)
-		ax.tick_params(axis='both', which='minor', labelsize=font)
-		if filename is not None:
-			plt.savefig(filename)
-		plt.show()
+			# Create MPL figure
+			fig = plt.figure(figsize=(16, 9))
+			ax = fig.add_subplot(111)
+			font = 20
+
+			ax.scatter(self.mass_1_arr, surrogate_logs, c='blue', label="Surrogate model posterior")
+			ax.plot(interp_masses, posterior_logs, c='blue', label="Interpolated posterior")
+			ax.axvline(self.true_unknown_masses[0], c='red', label="True mass")
+			ax.legend(fontsize=font)
+			ax.set_xlim([0, self.max_masses[0]])
+			ax.set_xlabel(r'Mass of 1st invisible body $m_1$ (in solar masses)', fontsize=font)
+			ax.set_ylabel(r'Log. posterior probability $\log[P(m_1)]$', fontsize=font)
+			ax.tick_params(axis='both', which='major', labelsize=font)
+			ax.tick_params(axis='both', which='minor', labelsize=font)
+			if filename is not None:
+				plt.savefig(filename)
+			plt.show()
+
+		elif self.unknown_bodies == 2:
+
+			print("Likelihood not yet setup")
+
+		else:
+			Likelihood.hardcoded_error_message()
 
 
 if __name__ == "__main__":
@@ -361,25 +371,25 @@ if __name__ == "__main__":
 	"""
 
 	# Setup the likelihood object
-	known_bodies = 2
-	unknown_bodies = 1
-	parameters_filename = "../data/sun_jup_2_0_1.json"
+	known_bodies = 1
+	unknown_bodies = 2
+	parameters_filename = "../data/sat_sun_jup_sat_1_2_2.json"
 	num_iterations = 20000
 	time_step = 0.5
-	max_masses = [9.547919e-4]
+	max_masses = np.array([1, 9.547919e-4]) * 2  # Actual masses times 2
 	eta = 1
-	surrogate_points = 3
+	surrogate_points = 9
 
 	# Construct the likelihood object
 	likelihood = Likelihood(known_bodies, unknown_bodies, parameters_filename, num_iterations, time_step,
 							max_masses, eta, surrogate_points)
 
 	# Plot the posterior
-	likelihood.plot_posterior("posterior.pdf", num=200)
+	likelihood.plot_posterior("1_2_2_posterior.pdf", num=200)
 
 """
 GOALS:
-	- Add parameters first_n, last_n to deal with either the first n% or last n% of the position data
 	- Visualize posterior for 2D
+	- Add parameters first_n, last_n to deal with either the first n% or last n% of the position data
 	- Add unit tests
 """
