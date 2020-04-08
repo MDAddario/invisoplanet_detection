@@ -234,7 +234,7 @@ def simulate(icfile, Niter, dt, filename, unknown_masses=None):
 
     # loop through iterate Niter times, each time progressing by a timestep dt and printing the results after
     # each step
-    for i in range(Niter):
+    for i in range(1, Niter):
         space_i = iterate(space_i, dt)
         space_i.psprint(outfile)
 
