@@ -71,9 +71,7 @@ class TrajectoryInformation:
 			return trajectory
 
 		else:
-			raise ValueError(
-				"Number of unknown bodies cannot exceed 1 due to hard-coding considerations."
-			)
+			Likelihood.hardcoded_error_message()
 
 	@staticmethod
 	def log_gaussian_difference(cur_trajectory, true_trajectory, eta):
@@ -153,12 +151,9 @@ class Likelihood:
 		self.eta = eta
 		self.surrogate_points = surrogate_points
 
-		# Let everyone know that you hard coded the fact that you're only checking for one additional planey
-		if self.unknown_bodies != 1:
-			raise ValueError(
-				"The statistics submodule currently only supports the detection of exactly one potential unknown"
-				"planet. Please specify unknown_bodies=1 or contact the developer to generalize the code."
-			)
+		# Let everyone know that you hard coded the fact that you're only checking for one additional planet
+		if self.unknown_bodies > 2:
+			Likelihood.hardcoded_error_message()
 
 		# Check the specified number of bodies matches the initial conditions file
 		if count_ic_bodies(self.parameters_filename) != self.known_bodies + self.unknown_bodies:
@@ -177,6 +172,13 @@ class Likelihood:
 		self.construct_surrogate_model()
 		self.true_trajectory_information = None
 		self.configure_true_trajectory()
+
+	@staticmethod
+	def hardcoded_error_message():
+		raise ValueError(
+			"Maximum number of unknown bodies cannot exceed 2 due to hard-coding considerations."
+			"Please set the unknown_bodies field to either 1 or 2."
+		)
 
 	def extract_trajectory_information(self, unknown_masses):
 		"""
@@ -217,9 +219,7 @@ class Likelihood:
 				self.surrogate_model[index] = self.extract_trajectory_information([mass_1])
 
 		else:
-			raise ValueError(
-				"Number of unknown bodies cannot exceed 1 due to hard-coding considerations."
-			)
+			Likelihood.hardcoded_error_message()
 
 	def configure_true_trajectory(self):
 		"""
@@ -284,7 +284,7 @@ if __name__ == "__main__":
 	time_step = 0.5
 	max_masses = [0.000285802 * 2]
 	eta = 1
-	surrogate_points = 11
+	surrogate_points = 3
 
 	# Construct the likelihood object
 	likelihood = Likelihood(known_bodies, unknown_bodies, parameters_filename, num_iterations, time_step,
@@ -312,14 +312,13 @@ if __name__ == "__main__":
 	plt.axvline(max_masses[0] / 2, label="True mass")
 	plt.legend()
 	plt.xlim([0, max_masses[0]])
-	plt.xlabel(r'Guess mass for 1st unknown planet $m_1$')
-	plt.ylabel(r'Posterior probability $p(m_1)$')
+	plt.xlabel(r'Mass of 1st invisible body $m_1$')
+	plt.ylabel(r'Log. Posterior probability $\log[P(m_1)]$')
 	plt.savefig('Sample_posterior.pdf')
 	plt.show()
 
 """
 GOALS:
-	- Make function for hardcoding error message
 	- Make method for posterior plot generation
 	- Make compatible with unknown_bodies = 2
 	- Add parameters first_n, last_n to deal with either the first n% or last n% of the position data
