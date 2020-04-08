@@ -27,13 +27,48 @@ class TrajectoryInformation:
 		# Store the data as the only attribute
 		self.pos_data = np.stack(all_pos, axis=2)
 
-	def extract_information_from_file(self):
-		pass
+		# Reduce the information
+		self.reduce_information()
+
+	def reduce_information(self):
+		"""
+		Truncate the data set of position data
+		"""
+		# CURRENTLY NO REDUCTION
+		self.pos_data = self.pos_data
+
+	@staticmethod
+	def interpolate_information(likelihood, guess_masses):
+		"""
+		Uses interpolation of surrogate model to determine the trajectory_information of a set of guess masses
+		"""
+		# Treat cases differently depending on the number of unknown bodies
+		if likelihood.unknown_bodies == 1:
+
+			# We only have one body to worry about
+			guess_mass_1 = guess_masses[0]
+
+			# Create the new trajectory object (purposely no constructor call)
+			trajectory = TrajectoryInformation
+
+			# Determine indices of nearest interpolation objects
+			index = np.interp(guess_mass_1, likelihood.mass_1_arr, np.arange(likelihood.surrogate_points))
+			left_index = int(index)
+			right_index = left_index + 1
+			weight = index - left_index
+
+			# Interpolate!
+			trajectory.pos_data = likelihood.surrogate_model[left_index] * weight \
+								+ likelihood.surrogate_model[right_index * (1 - weight)]
+
+			return trajectory
+
+		else:
+			raise ValueError(
+				"Number of unknown bodies cannot exceed 1 due to hard-coding considerations."
+			)
 
 	def compute_log_gaussian_difference(self):
-		pass
-
-	def interpolate_information(self):
 		pass
 
 
@@ -58,7 +93,6 @@ class Likelihood:
 
 	- self.max_masses | list of floats
 		Maximum possible masses for the unknown bodies
-		If unset, program will initialize these to double the mass of the largest body in the system
 
 	- self.eta | float
 		Scale parameter used in exponential likelihood function
@@ -70,6 +104,10 @@ class Likelihood:
 		bodies, there will be self.surrogate_points**2 points in interpolation space
 
 	# CLASS SET ATTRIBUTES
+
+	- self.mass_1_arr | array of floats
+		Mass values for unknown body 1 corresponding to the surrogate model points
+		Used for interpolation
 
 	- self.surrogate_model | n-dimensional array of type TrajectoryInformation
 		Array containing the trajectory information for the planetary trajectories
@@ -96,6 +134,13 @@ class Likelihood:
 		self.eta = eta
 		self.surrogate_points = surrogate_points
 
+		# Let everyone know that you hard coded the fact that you're only checking for one additional planey
+		if self.unknown_bodies != 1:
+			raise ValueError(
+				"The statistics submodule currently only supports the detection of exactly one potential unknown"
+				"planet. Please specify unknown_bodies=1 or contact the developer to generalize the code."
+			)
+
 		# Check the specified number of bodies matches the initial conditions file
 		if count_ic_bodies(self.parameters_filename) != self.known_bodies + self.unknown_bodies:
 			raise ValueError(
@@ -108,6 +153,7 @@ class Likelihood:
 			)
 
 		# Class set parameters
+		self.mass_1_arr = None
 		self.surrogate_model = None
 		self.construct_surrogate_model()
 		self.true_trajectory_information = None
@@ -141,29 +187,15 @@ class Likelihood:
 			self.surrogate_model = np.empty(self.surrogate_points, dtype=object)
 
 			# Determine mass values to simulate
-			mass_1_list = np.linspace(0, self.max_masses[0], num=self.surrogate_points)
+			self.mass_1_arr = np.linspace(0, self.max_masses[0], num=self.surrogate_points)
 
 			# Construct the surrogate model
-			for index, mass_1 in enumerate(tqdm(mass_1_list, desc='Mass 1 list')):
+			for index, mass_1 in enumerate(tqdm(self.mass_1_arr, desc='Mass 1 list')):
 				self.surrogate_model[index] = self.extract_trajectory_information([mass_1])
-
-		elif self.unknown_bodies == 2:
-
-			# Allocate memory for surrogate model
-			self.surrogate_model = np.empty((self.surrogate_points, self.surrogate_points), dtype=object)
-
-			# Determine mass values to simulate
-			mass_1_list = np.linspace(0, self.max_masses[0], num=self.surrogate_points)
-			mass_2_list = np.linspace(0, self.max_masses[1], num=self.surrogate_points)
-
-			# Construct the surrogate model
-			for i_1, mass_1 in enumerate(tqdm(mass_1_list, desc='Mass 1 list')):
-				for i_2, mass_2 in enumerate(tqdm(mass_2_list, desc='Mass 2 list')):
-					self.surrogate_model[i_1, i_2] = self.extract_trajectory_information([mass_1, mass_2])
 
 		else:
 			raise ValueError(
-				"Number of unknown bodies cannot exceed 2 due to hard-coding considerations."
+				"Number of unknown bodies cannot exceed 1 due to hard-coding considerations."
 			)
 
 	def configure_true_trajectory(self):
@@ -173,17 +205,12 @@ class Likelihood:
 		true_unknown_masses = extract_unknown_ic_masses(self.parameters_filename, self.known_bodies)
 		self.true_trajectory_information = self.extract_trajectory_information(true_unknown_masses)
 
-	def interpolate_trajectory_information(self):
-		pass
-
-	"""
-	Uses interpolation of surrogate model to determine the trajectory_information of a set of masses
-	
-	Inputs:
-		- Guess of unknown masses
-	Outputs:
-		- Interpolated TrajectoryInformation
-	"""
+	def interpolate_trajectory_information(self, guess_masses):
+		"""
+		Uses interpolation of surrogate model to determine the trajectory_information of a set of guess masses
+		Leave the details up to the representation of the TrajectoryInformation object
+		"""
+		return TrajectoryInformation.interpolate_information(self, guess_masses)
 
 	def MCMC_log_likelihood(self):
 		pass
