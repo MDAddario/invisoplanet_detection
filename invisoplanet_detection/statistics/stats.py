@@ -24,9 +24,7 @@ class TrajectoryInformation:
 
 		for i in range(known_bodies):
 			pi_idx = np.arange(i, len(posdata), step=known_bodies + unknown_bodies)
-			print(pi_idx)
 			all_pos.append(posdata[pi_idx])
-			print(posdata[pi_idx].shape)
 
 		# Store the data as the only attribute
 		self.pos_data = np.stack(all_pos, axis=2)
@@ -166,7 +164,7 @@ class Likelihood:
 		# Class set parameters
 		self.mass_1_arr = None
 		self.surrogate_model = None
-		self.construct_surrogate_model()
+		#self.construct_surrogate_model()
 		self.true_trajectory_information = None
 		self.configure_true_trajectory()
 
@@ -215,6 +213,8 @@ class Likelihood:
 		Run the simulation that corresponds to the true masses of the unknown bodies and save the trajectory information
 		"""
 		true_unknown_masses = extract_unknown_ic_masses(self.parameters_filename, self.known_bodies)
+		print(true_unknown_masses)
+		exit()
 		self.true_trajectory_information = self.extract_trajectory_information(true_unknown_masses)
 
 	def interpolate_trajectory_information(self, guess_masses):

@@ -204,7 +204,14 @@ def extract_unknown_ic_masses(icfile, num_known_bodies):
     with open(icfile, "r") as file:
         ics = json.load(file)
 
-    return ics["bodies"][num_known_bodies:]
+    mass_list = []
+
+    for i, body in enumerate(ics["bodies"]):
+
+        if i >= num_known_bodies:
+            mass_list.append(body["mass"])
+
+    return mass_list
 
 
 # progress the simulation by a single time interval dt
