@@ -216,3 +216,9 @@ class Likelihood:
 	Outputs:
 		- Float (posterior log)
 	"""
+
+
+if __name__ == "__main__":
+
+	print("stats.py is running the main function.")
+	exit()
