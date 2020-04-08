@@ -152,6 +152,9 @@ class Likelihood:
 		Array will have self.unknown_bodies indices
 		Each axis will have self.surrogate_points entries
 
+	- self.true_unknown_masses | list of floats
+		True masses of the unknown bodies
+
 	- self.true_trajectory_information | TrajectoryInformation object
 		Information corresponding to the true planet trajectories
 	"""
@@ -192,6 +195,7 @@ class Likelihood:
 		self.surrogate_model = None
 		self.construct_surrogate_model()
 
+		self.true_unknown_masses = None
 		self.true_trajectory_information = None
 		self.configure_true_trajectory()
 
@@ -261,8 +265,8 @@ class Likelihood:
 		"""
 		Run the simulation that corresponds to the true masses of the unknown bodies and save the trajectory information
 		"""
-		true_unknown_masses = extract_unknown_ic_masses(self.parameters_filename, self.known_bodies)
-		self.true_trajectory_information = self.extract_trajectory_information(true_unknown_masses)
+		self.true_unknown_masses = extract_unknown_ic_masses(self.parameters_filename, self.known_bodies)
+		self.true_trajectory_information = self.extract_trajectory_information(self.true_unknown_masses)
 
 	def interpolate_trajectory_information(self, guess_masses):
 		"""
@@ -298,6 +302,45 @@ class Likelihood:
 		# Else return the likelihood
 		return self.log_likelihood(guess_masses)
 
+	def plot_posterior(self, filename=None, num=100):
+		"""
+		Plot the posterior associated with the optimization problem
+		"""
+		# Compute the surrogate model gaussian differences
+		surrogate_logs = []
+		for i in range(self.surrogate_points):
+			surrogate_logs.append(TrajectoryInformation.log_gaussian_difference(self.surrogate_model[i],
+									self.true_trajectory_information, self.eta))
+
+		# Compute the interpolated model gaussian differences
+		posterior_logs = []
+		interp_masses = np.linspace(0, self.max_masses[0], num=num)
+		for mass_1 in interp_masses:
+			posterior_logs.append(self.log_posterior([mass_1]))
+
+		"""
+		Note that we expect there to be a local maximum at the true mass of planet 3, with a value
+		of 0 for the logarithm when eta=1
+		"""
+
+		# Create MPL figure
+		fig = plt.figure(figsize=(16, 9))
+		ax = fig.add_subplot(111)
+		font = 20
+
+		ax.scatter(self.mass_1_arr, surrogate_logs, c='blue', label="Surrogate model posterior")
+		ax.plot(interp_masses, posterior_logs, c='blue', label="Interpolated posterior")
+		ax.axvline(self.true_unknown_masses[0], c='red', label="True mass")
+		ax.legend(fontsize=font)
+		ax.set_xlim([0, self.max_masses[0]])
+		ax.set_xlabel(r'Mass of 1st invisible body $m_1$', fontsize=font)
+		ax.set_ylabel(r'Log. posterior probability $\log[P(m_1)]$', fontsize=font)
+		ax.tick_params(axis='both', which='major', labelsize=font)
+		ax.tick_params(axis='both', which='minor', labelsize=font)
+		if filename is not None:
+			plt.savefig(filename)
+		plt.show()
+
 
 if __name__ == "__main__":
 
@@ -326,36 +369,11 @@ if __name__ == "__main__":
 	likelihood = Likelihood(known_bodies, unknown_bodies, parameters_filename, num_iterations, time_step,
 							max_masses, eta, surrogate_points)
 
-	# Compute the surrogate model gaussian differences
-	surrogate_logs = []
-	for i in tqdm(range(likelihood.surrogate_points), desc='Surrogate model'):
-		surrogate_logs.append(TrajectoryInformation.log_gaussian_difference(likelihood.surrogate_model[i],
-										likelihood.true_trajectory_information, likelihood.eta))
-
-	# Compute the interpolated model gaussian differences
-	posterior_logs = []
-	interp_masses = np.linspace(0, max_masses[0], num=100)
-	for mass_1 in tqdm(interp_masses, desc='Interpolation'):
-		posterior_logs.append(likelihood.log_posterior([mass_1]))
-
-	"""
-	Note that we expect there to be a local maximum at the true mass of planet 3, with a value
-	of 0 for the logarithm when eta=1
-	"""
-
-	plt.scatter(likelihood.mass_1_arr, surrogate_logs, label="Surrogate model posterior")
-	plt.plot(interp_masses, posterior_logs, label="Interpolated posterior")
-	plt.axvline(max_masses[0] / 2, label="True mass")
-	plt.legend()
-	plt.xlim([0, max_masses[0]])
-	plt.xlabel(r'Mass of 1st invisible body $m_1$')
-	plt.ylabel(r'Log. Posterior probability $\log[P(m_1)]$')
-	plt.savefig('Sample_posterior.pdf')
-	plt.show()
+	# Plot the posterior
+	likelihood.plot_posterior("posterior.pdf", num=200)
 
 """
 GOALS:
-	- Make method for posterior plot generation
 	- Add parameters first_n, last_n to deal with either the first n% or last n% of the position data
 	- Consider changing zero masses to epsilon masses
 	- Add unit tests
