@@ -12,7 +12,7 @@ class TrajectoryInformation:
 	from the last 10 % of the trajectory data.
 	"""
 
-	def __init__(self, posdata, known_bodies):
+	def __init__(self, posdata, known_bodies, unknown_bodies):
 		"""
 		self.pos_data:
 		axis 0 = time_step
@@ -23,8 +23,10 @@ class TrajectoryInformation:
 		all_pos = []
 
 		for i in range(known_bodies):
-			pi_idx = np.arange(i, len(posdata), step=known_bodies)
+			pi_idx = np.arange(i, len(posdata), step=known_bodies + unknown_bodies)
+			print(pi_idx)
 			all_pos.append(posdata[pi_idx])
+			print(posdata[pi_idx].shape)
 
 		# Store the data as the only attribute
 		self.pos_data = np.stack(all_pos, axis=2)
@@ -183,7 +185,7 @@ class Likelihood:
 			posdata = np.genfromtxt(file)
 
 		# Return a reduced and formatted object
-		return TrajectoryInformation(posdata, self.known_bodies)
+		return TrajectoryInformation(posdata, self.known_bodies, self.unknown_bodies)
 
 	def construct_surrogate_model(self):
 		"""
@@ -266,7 +268,7 @@ if __name__ == "__main__":
 	# Setup the likelihood object
 	known_bodies = 2
 	unknown_bodies = 1
-	parameters_filename = "../data/sun_jupiter_2_0_1.json"
+	parameters_filename = "../data/sun_jupiter_saturn_2_1_1.json"
 	num_iterations = 20000
 	time_step = 0.5
 	max_masses = [1]
