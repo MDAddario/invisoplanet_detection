@@ -1,4 +1,5 @@
 from tqdm import tqdm
+import os
 from invisoplanet_detection.simulations import *
 
 
@@ -13,6 +14,7 @@ class TrajectoryInformation:
 
 	def __init__(self, posdata, known_bodies):
 		"""
+		self.pos_data:
 		axis 0 = time_step
 		axis 1 = position_coordinate
 		axis 2 = body index
@@ -172,7 +174,8 @@ class Likelihood:
 		"""
 
 		# Run the n-body simulation
-		out_file = "invisoplanet_detection/data/likelihood_output.txt"
+		os.chdir(os.path.dirname(os.path.abspath(__file__)))
+		out_file = "../data/likelihood_output.txt"
 		simulate(self.parameters_filename, self.num_iterations, self.time_step, out_file, unknown_masses)
 
 		# Extract the position data
@@ -232,7 +235,7 @@ class Likelihood:
 		# Compute the log gaussian difference between the trajectories
 		return TrajectoryInformation.log_gaussian_difference(trajectory, self.true_trajectory_information, self.eta)
 
-	def log_posterior(self, guess_masses, x, y, y_err):
+	def log_posterior(self, guess_masses, x=None, y=None, y_err=None):
 		"""
 		Serve as the function that will be passed to the MCMC iterator
 		Will incorporate the prior: i.e., if masses are negative or greater than max_masses, this function
@@ -249,5 +252,32 @@ class Likelihood:
 
 if __name__ == "__main__":
 
-	print("stats.py is running the main function.")
+	"""
+	A NOTE FOR THE PARAMETER FILENAME CONVENTION:
+	>>>> data_X_Y_Z.txt
+	X: Number of known bodies
+	Y: Number of unknown bodies
+	Z: Maximum number of unknown bodies we are trying to detect
+	NOTE THAT Z >= Y !!!!
+	The data file should contain X+Z body entries.
+	If Z > Y, zero fill the remaining planets.
+	"""
+
+	# Setup the likelihood object
+	known_bodies = 2
+	unknown_bodies = 1
+	parameters_filename = "../data/sun_jupiter_2_0_1.json"
+	num_iterations = 20000
+	time_step = 0.5
+	max_masses = [1]
+	eta = 1e-4
+	surrogate_points = 5
+
+	# Construct the likelihood object
+	likelihood = Likelihood(known_bodies, unknown_bodies, parameters_filename, num_iterations, time_step,
+							max_masses, eta, surrogate_points)
+
+	# Use the posterior function
+	likelihood.log_posterior([1e-5])
+
 	exit()
