@@ -13,7 +13,7 @@ class TrajectoryInformation:
 	from the last 10 % of the trajectory data.
 	"""
 
-	def __init__(self, posdata, known_bodies, unknown_bodies):
+	def __init__(self, posdata, known_bodies, unknown_bodies, last_n):
 		"""
 		self.pos_data:
 		axis 0 = time_step
@@ -31,14 +31,22 @@ class TrajectoryInformation:
 		self.pos_data = np.stack(all_pos, axis=2)
 
 		# Reduce the information
-		self.reduce_information()
+		self.reduce_information(last_n)
 
-	def reduce_information(self):
+	def reduce_information(self, last_n):
 		"""
 		Truncate the data set of position data
 		"""
-		# CURRENTLY NO REDUCTION
-		self.pos_data = self.pos_data
+		# Ensure last_n is a proper percentage
+		if not 0 < last_n <= 100:
+			raise ValueError(
+				"Parameter last_n must be within the half open interval (0, 100]."
+			)
+
+		# Truncate to last_n% of the data set (temporally)
+		max_index = self.pos_data.shape[0]
+		cutoff_index = max_index * (100 - last_n) // 100
+		self.pos_data = self.pos_data[cutoff_index:, :, :]
 
 	@staticmethod
 	def interpolate_information(likelihood, guess_masses):
@@ -135,6 +143,9 @@ class Likelihood:
 	- self.time_step | float
 		The value for dt used when conducting the simulations
 
+	- self.last_n | float between 0 and 100
+		The final percent of the trajectory data to be used for gaussian differences
+
 	- self.eta | float
 		Scale parameter used in exponential likelihood function
 		Controls the size of steps in MCMC iterations
@@ -162,7 +173,7 @@ class Likelihood:
 	"""
 
 	def __init__(self, known_bodies, unknown_bodies, parameters_filename, max_masses, surrogate_points,
-					num_iterations=20_000, time_step=0.5):
+					num_iterations=20_000, time_step=0.5, last_n=100):
 		"""
 		Sets the default parameters for the various user set attributes, and computes class set attributes
 		"""
@@ -175,6 +186,7 @@ class Likelihood:
 		self.surrogate_points = surrogate_points
 		self.num_iterations = num_iterations
 		self.time_step = time_step
+		self.last_n = last_n
 
 		# Set default eta
 		self.eta = None
@@ -238,7 +250,7 @@ class Likelihood:
 		os.remove(out_file)
 
 		# Return a reduced and formatted object
-		return TrajectoryInformation(posdata, self.known_bodies, self.unknown_bodies)
+		return TrajectoryInformation(posdata, self.known_bodies, self.unknown_bodies, self.last_n)
 
 	def construct_surrogate_model(self):
 		"""

@@ -21,14 +21,17 @@ if __name__ == "__main__":
 	parameters_filename = "invisoplanet_detection/data/sat_sun_jup_sat_1_2_2.json"
 	max_masses = np.array([1, 9.547919e-4]) * 2  # Actual masses times 2
 	surrogate_points = 9
-	num_iterations = 200  # 20_000 normally
+
+	# Optional arguments (these are the default values)
+	num_iterations = 20_000     # Change to 200 when testing
 	time_step = 0.5
+	last_n = 100        # Consider making smaller
 
 	# Construct the likelihood object
 	likelihood = Likelihood(known_bodies, unknown_bodies, parameters_filename, max_masses, surrogate_points,
-							num_iterations, time_step)
+							num_iterations, time_step, last_n)
 
-	# Set the eta value
+	# Set the eta value (the only parameter you can change without having to regenerate the surrogate model)
 	likelihood.set_eta(1)
 
 	# Plot the posterior
