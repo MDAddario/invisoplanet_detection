@@ -53,12 +53,14 @@ class TrajectoryInformation:
 		elif likelihood.unknown_bodies == 2:
 
 			# Interpolate for mass 1
+			index = int(np.interp(guess_masses[1], likelihood.mass_2_arr, np.arange(len(likelihood.mass_2_arr))))
 			horizontal = TrajectoryInformation.interpolate(guess_masses[0], likelihood.mass_1_arr,
-															likelihood.surrogate_model)
+															likelihood.surrogate_model[index, :])
 
 			# Interpolate for mass 2
+			index = int(np.interp(guess_masses[0], likelihood.mass_1_arr, np.arange(len(likelihood.mass_1_arr))))
 			vertical = TrajectoryInformation.interpolate(guess_masses[1], likelihood.mass_2_arr,
-															likelihood.surrogate_model)
+															likelihood.surrogate_model[:, index])
 
 			# Average them out
 			trajectory = TrajectoryInformation
@@ -311,6 +313,11 @@ class Likelihood:
 		"""
 		Plot the posterior associated with the optimization problem
 		"""
+		# Create MPL figure
+		fig = plt.figure(figsize=(16, 9))
+		ax = fig.add_subplot(111)
+		font = 20
+
 		# Treat cases differently depending on the number of unknown bodies
 		if self.unknown_bodies == 1:
 
@@ -326,16 +333,7 @@ class Likelihood:
 			for mass_1 in interp_masses:
 				posterior_logs.append(self.log_posterior([mass_1]))
 
-			"""
-			Note that we expect there to be a local maximum at the true mass of planet 3, with a value
-			of 0 for the logarithm when eta=1
-			"""
-
-			# Create MPL figure
-			fig = plt.figure(figsize=(16, 9))
-			ax = fig.add_subplot(111)
-			font = 20
-
+			# Plot all the relevant info
 			ax.scatter(self.mass_1_arr, surrogate_logs, c='blue', label="Surrogate model posterior")
 			ax.plot(interp_masses, posterior_logs, c='blue', label="Interpolated posterior")
 			ax.axvline(self.true_unknown_masses[0], c='red', label="True mass")
@@ -351,7 +349,27 @@ class Likelihood:
 
 		elif self.unknown_bodies == 2:
 
-			print("Likelihood not yet setup")
+			# Compute the interpolated model gaussian differences
+			posterior_logs = np.empty((num, num), dtype=object)
+			interp_masses_1 = np.linspace(0, self.max_masses[0], num=num)
+			interp_masses_2 = np.linspace(0, self.max_masses[1], num=num)
+			for i_1, mass_1 in enumerate(interp_masses_1):
+				for i_2, mass_2 in enumerate(interp_masses_2):
+					posterior_logs[i_1, i_2] = self.log_posterior([mass_1, mass_2])
+
+			# Plot all the relevant
+			im = plt.imshow(posterior_logs, cmap='inferno')
+			fig.colorbar(im, fraction=0.045, ax=ax)
+			ax.axvline(self.true_unknown_masses[0], c='red', label="True mass 1")
+			ax.axhline(self.true_unknown_masses[1], c='red', label="True mass 2")
+			ax.legend(fontsize=font)
+			ax.set_xlabel(r'Mass of 1st invisible body $m_1$ (in solar masses)', fontsize=font)
+			ax.set_xlabel(r'Mass of 2st invisible body $m_2$ (in solar masses)', fontsize=font)
+			ax.tick_params(axis='both', which='major', labelsize=font)
+			ax.tick_params(axis='both', which='minor', labelsize=font)
+			if filename is not None:
+				plt.savefig(filename)
+			plt.show()
 
 		else:
 			Likelihood.hardcoded_error_message()
@@ -374,11 +392,11 @@ if __name__ == "__main__":
 	known_bodies = 1
 	unknown_bodies = 2
 	parameters_filename = "../data/sat_sun_jup_sat_1_2_2.json"
-	num_iterations = 20000
+	num_iterations = 200
 	time_step = 0.5
 	max_masses = np.array([1, 9.547919e-4]) * 2  # Actual masses times 2
 	eta = 1
-	surrogate_points = 9
+	surrogate_points = 5
 
 	# Construct the likelihood object
 	likelihood = Likelihood(known_bodies, unknown_bodies, parameters_filename, num_iterations, time_step,
