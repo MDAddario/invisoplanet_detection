@@ -350,7 +350,7 @@ class Likelihood:
 		elif self.unknown_bodies == 2:
 
 			# Compute the interpolated model gaussian differences
-			posterior_logs = np.empty((num, num), dtype=object)
+			posterior_logs = np.empty((num, num))
 			interp_masses_1 = np.linspace(0, self.max_masses[0], num=num)
 			interp_masses_2 = np.linspace(0, self.max_masses[1], num=num)
 			for i_1, mass_1 in enumerate(interp_masses_1):
@@ -360,11 +360,16 @@ class Likelihood:
 			# Plot all the relevant
 			im = plt.imshow(posterior_logs, cmap='inferno')
 			fig.colorbar(im, fraction=0.045, ax=ax)
-			ax.axvline(self.true_unknown_masses[0], c='red', label="True mass 1")
-			ax.axhline(self.true_unknown_masses[1], c='red', label="True mass 2")
+			ax.axvline(self.true_unknown_masses[0] * num / self.max_masses[0], c='red', label="True mass 1")
+			ax.axhline(self.true_unknown_masses[1] * num / self.max_masses[1], c='red', label="True mass 2")
 			ax.legend(fontsize=font)
+			count = 7
+			ax.set_xticks(np.linspace(0, num-1, count))
+			ax.set_xticklabels(np.linspace(0, self.max_masses[0], count), rotation='vertical')
+			ax.set_yticks(np.linspace(0, num-1, count))
+			ax.set_yticklabels(np.linspace(0, self.max_masses[1], count))
 			ax.set_xlabel(r'Mass of 1st invisible body $m_1$ (in solar masses)', fontsize=font)
-			ax.set_xlabel(r'Mass of 2st invisible body $m_2$ (in solar masses)', fontsize=font)
+			ax.set_ylabel(r'Mass of 2st invisible body $m_2$ (in solar masses)', fontsize=font)
 			ax.tick_params(axis='both', which='major', labelsize=font)
 			ax.tick_params(axis='both', which='minor', labelsize=font)
 			if filename is not None:
@@ -392,6 +397,7 @@ if __name__ == "__main__":
 	known_bodies = 1
 	unknown_bodies = 2
 	parameters_filename = "../data/sat_sun_jup_sat_1_2_2.json"
+	# num_iterations = 20000
 	num_iterations = 200
 	time_step = 0.5
 	max_masses = np.array([1, 9.547919e-4]) * 2  # Actual masses times 2
@@ -403,10 +409,11 @@ if __name__ == "__main__":
 							max_masses, eta, surrogate_points)
 
 	# Plot the posterior
-	likelihood.plot_posterior("1_2_2_posterior.pdf", num=200)
+	likelihood.plot_posterior("1_2_2_posterior.pdf", num=20)
 
 """
 GOALS:
+	- Fix broken 2D interpolation
 	- Visualize posterior for 2D
 	- Add parameters first_n, last_n to deal with either the first n% or last n% of the position data
 	- Add unit tests
