@@ -150,15 +150,26 @@ class PhaseSpace:
 
 # set up the system to begin the iterations
 # both icfile and filenames should be str objects containing the names of the associated files
-def initialize(icfile, filename):
+def initialize(icfile, filename, unknown_masses=None):
     # read ic information from the file into a list of body objects
     with open(icfile, "r") as file:
         ics = json.load(file)
 
     body_list = []
 
-    for body in ics["bodies"]:
-        m = body["mass"]
+    for i, body in enumerate(ics["bodies"]):
+
+        # if specified, user imposes the masses of the unknown bodies
+        if unknown_masses is not None:
+            index = i - len(ics["bodies"]) + len(unknown_masses)
+
+            if 0 <= index < len(unknown_masses):
+                m = unknown_masses[index]
+            else:
+                m = body["mass"]
+        else:
+            m = body["mass"]
+
         pos = np.array([body["init_pos"]["x"], body["init_pos"]["y"]])
         vel = np.array([body["init_vel"]["x"], body["init_vel"]["y"]])
 
@@ -176,6 +187,31 @@ def initialize(icfile, filename):
     init_space.psprint(x_outfile)
 
     return init_space, x_outfile
+
+
+# count the number of bodies present in the icfile
+def count_ic_bodies(icfile):
+    # read ic information from the file into a list of body objects
+    with open(icfile, "r") as file:
+        ics = json.load(file)
+
+    return len(ics["bodies"])
+
+
+# extract the true masses of the unknown bodies
+def extract_unknown_ic_masses(icfile, num_known_bodies):
+    # read ic information from the file into a list of body objects
+    with open(icfile, "r") as file:
+        ics = json.load(file)
+
+    mass_list = []
+
+    for i, body in enumerate(ics["bodies"]):
+
+        if i >= num_known_bodies:
+            mass_list.append(body["mass"])
+
+    return mass_list
 
 
 # progress the simulation by a single time interval dt
@@ -199,13 +235,13 @@ def iterate(space_i, dt):
 
 # initialize the simulation from the icfile and run it n_iter times, progressing by time interval
 # dt each time
-def simulate(icfile, Niter, dt, filename):
+def simulate(icfile, Niter, dt, filename, unknown_masses=None):
     # call initialize to prepare the simulation
-    space_i, outfile = initialize(icfile, filename)
+    space_i, outfile = initialize(icfile, filename, unknown_masses)
 
     # loop through iterate Niter times, each time progressing by a timestep dt and printing the results after
     # each step
-    for i in range(Niter):
+    for i in range(1, Niter):
         space_i = iterate(space_i, dt)
         space_i.psprint(outfile)
 

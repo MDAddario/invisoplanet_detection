@@ -1,17 +1,10 @@
 __Program Dependencies__
 
-To run the animations, the Pyglet package must be installed.
-
-1. Via pip:
-
-```
-pip install --upgrade --user pyglet
-```
-
-2. Via conda:
+In addition to the default packages provided by Anaconda (tested 2020/04/07), the following packages must be installed to ensure complete compatitbility.
 
 ```
 conda install -c conda-forge pyglet
+conda install -c astropy corner
 ```
 
 __Invisoplanet Detection Milestones__
