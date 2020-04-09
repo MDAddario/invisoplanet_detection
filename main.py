@@ -1,9 +1,38 @@
 # Import the animations submodule
-from invisoplanet_detection.animations import *
-from invisoplanet_detection.simulations import *
+#from invisoplanet_detection.animations import *
+from invisoplanet_detection.statistics import *
 
 if __name__ == "__main__":
 
+	"""
+	A NOTE FOR THE PARAMETER FILENAME CONVENTION:
+	>>>> data_X_Y_Z.txt
+	X: Number of known bodies
+	Y: Number of unknown bodies
+	Z: Maximum number of unknown bodies we are trying to detect
+	NOTE THAT Z >= Y !!!!
+	The data file should contain X+Z body entries.
+	If Z > Y, zero fill the remaining planets.
+	"""
+
+	# Setup the likelihood object
+	known_bodies = 1
+	unknown_bodies = 2
+	parameters_filename = "invisoplanet_detection/data/sat_sun_jup_sat_1_2_2.json"
+	num_iterations = 200    # 20_000
+	time_step = 0.5
+	max_masses = np.array([1, 9.547919e-4]) * 2  # Actual masses times 2
+	eta = 1
+	surrogate_points = 9
+
+	# Construct the likelihood object
+	likelihood = Likelihood(known_bodies, unknown_bodies, parameters_filename, num_iterations, time_step,
+							max_masses, eta, surrogate_points)
+
+	# Plot the posterior
+	likelihood.plot_posterior("figures/1_2_2_posterior.pdf", num=20, floor=-10)
+
+	exit()
 
 	"""
 	Note, the position data supplied to the planet_creator() must be formatted
@@ -12,6 +41,7 @@ if __name__ == "__main__":
 	>>>> position_data = [[1, 0, 0], [1, 1, 0], [1, 2, 0], [1, 3, 0]]
 	"""
 
+	'''
 	in_file = "invisoplanet_detection/data/binary.json"
 	out_file = "invisoplanet_detection/data/testx.txt"
 
@@ -71,3 +101,4 @@ if __name__ == "__main__":
 
 	# Run the animation!
 	pyglet.app.run()
+	'''

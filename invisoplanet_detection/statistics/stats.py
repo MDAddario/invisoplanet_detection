@@ -219,8 +219,7 @@ class Likelihood:
 				unknown_masses[i] = epsilon
 
 		# Run the n-body simulation
-		os.chdir(os.path.dirname(os.path.abspath(__file__)))
-		out_file = "../data/likelihood_output.txt"
+		out_file = "likelihood_output.txt"
 		simulate(self.parameters_filename, self.num_iterations, self.time_step, out_file, unknown_masses)
 
 		# Extract the position data
@@ -387,37 +386,6 @@ class Likelihood:
 		else:
 			Likelihood.hardcoded_error_message()
 
-
-if __name__ == "__main__":
-
-	"""
-	A NOTE FOR THE PARAMETER FILENAME CONVENTION:
-	>>>> data_X_Y_Z.txt
-	X: Number of known bodies
-	Y: Number of unknown bodies
-	Z: Maximum number of unknown bodies we are trying to detect
-	NOTE THAT Z >= Y !!!!
-	The data file should contain X+Z body entries.
-	If Z > Y, zero fill the remaining planets.
-	"""
-
-	# Setup the likelihood object
-	known_bodies = 1
-	unknown_bodies = 2
-	parameters_filename = "../data/sat_sun_jup_sat_1_2_2.json"
-	# num_iterations = 20000
-	num_iterations = 200
-	time_step = 0.5
-	max_masses = np.array([1, 9.547919e-4]) * 2  # Actual masses times 2
-	eta = 1
-	surrogate_points = 9
-
-	# Construct the likelihood object
-	likelihood = Likelihood(known_bodies, unknown_bodies, parameters_filename, num_iterations, time_step,
-							max_masses, eta, surrogate_points)
-
-	# Plot the posterior
-	likelihood.plot_posterior("1_2_2_posterior.pdf", num=20, floor=-10)
 
 """
 GOALS:
