@@ -19,14 +19,14 @@ if __name__ == "__main__":
 	known_bodies = 1
 	unknown_bodies = 2
 	parameters_filename = "invisoplanet_detection/data/sat_sun_jup_sat_1_2_2.json"
-	num_iterations = 200    # 20_000
-	time_step = 0.5
 	max_masses = np.array([1, 9.547919e-4]) * 2  # Actual masses times 2
 	surrogate_points = 9
+	num_iterations = 200  # 20_000 normally
+	time_step = 0.5
 
 	# Construct the likelihood object
-	likelihood = Likelihood(known_bodies, unknown_bodies, parameters_filename, num_iterations, time_step,
-							max_masses, surrogate_points)
+	likelihood = Likelihood(known_bodies, unknown_bodies, parameters_filename, max_masses, surrogate_points,
+							num_iterations, time_step)
 
 	# Set the eta value
 	likelihood.set_eta(1)

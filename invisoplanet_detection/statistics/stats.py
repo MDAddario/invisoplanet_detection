@@ -121,12 +121,6 @@ class Likelihood:
 	- self.parameters_filename | string
 		Filename used to retrieve the initial conditions for the bodies
 
-	- self.num_iterations | int
-		Number of iterations of the simulation to perform
-
-	- self.time_step | float
-		The value for dt used when conducting the simulations
-
 	- self.max_masses | list of floats
 		Maximum possible masses for the unknown bodies
 
@@ -134,6 +128,12 @@ class Likelihood:
 		Number of mass samples to use when computing surrogate model
 		This number will correspond to each dimension of mass, i.e. for a model with 2 additional hidden
 		bodies, there will be self.surrogate_points**2 points in interpolation space
+
+	- self.num_iterations | int
+		Number of iterations of the simulation to perform
+
+	- self.time_step | float
+		The value for dt used when conducting the simulations
 
 	- self.eta | float
 		Scale parameter used in exponential likelihood function
@@ -161,8 +161,8 @@ class Likelihood:
 		Information corresponding to the true planet trajectories
 	"""
 
-	def __init__(self, known_bodies, unknown_bodies, parameters_filename, num_iterations, time_step,
-	             max_masses, surrogate_points):
+	def __init__(self, known_bodies, unknown_bodies, parameters_filename, max_masses, surrogate_points,
+					num_iterations=20_000, time_step=0.5):
 		"""
 		Sets the default parameters for the various user set attributes, and computes class set attributes
 		"""
@@ -171,10 +171,10 @@ class Likelihood:
 		self.known_bodies = known_bodies
 		self.unknown_bodies = unknown_bodies
 		self.parameters_filename = parameters_filename
-		self.num_iterations = num_iterations
-		self.time_step = time_step
 		self.max_masses = max_masses
 		self.surrogate_points = surrogate_points
+		self.num_iterations = num_iterations
+		self.time_step = time_step
 
 		# Set default eta
 		self.eta = None
