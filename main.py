@@ -22,12 +22,14 @@ if __name__ == "__main__":
 	num_iterations = 200    # 20_000
 	time_step = 0.5
 	max_masses = np.array([1, 9.547919e-4]) * 2  # Actual masses times 2
-	eta = 1
 	surrogate_points = 9
 
 	# Construct the likelihood object
 	likelihood = Likelihood(known_bodies, unknown_bodies, parameters_filename, num_iterations, time_step,
-							max_masses, eta, surrogate_points)
+							max_masses, surrogate_points)
+
+	# Set the eta value
+	likelihood.set_eta(1)
 
 	# Plot the posterior
 	likelihood.plot_posterior("figures/1_2_2_posterior.pdf", num=20, floor=-10)

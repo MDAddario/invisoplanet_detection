@@ -130,14 +130,14 @@ class Likelihood:
 	- self.max_masses | list of floats
 		Maximum possible masses for the unknown bodies
 
-	- self.eta | float
-		Scale parameter used in exponential likelihood function
-		Controls the size of steps in MCMC iterations
-
 	- self.surrogate_points | integer
 		Number of mass samples to use when computing surrogate model
 		This number will correspond to each dimension of mass, i.e. for a model with 2 additional hidden
 		bodies, there will be self.surrogate_points**2 points in interpolation space
+
+	- self.eta | float
+		Scale parameter used in exponential likelihood function
+		Controls the size of steps in MCMC iterations
 
 	# CLASS SET ATTRIBUTES
 
@@ -162,7 +162,7 @@ class Likelihood:
 	"""
 
 	def __init__(self, known_bodies, unknown_bodies, parameters_filename, num_iterations, time_step,
-	             max_masses, eta, surrogate_points):
+	             max_masses, surrogate_points):
 		"""
 		Sets the default parameters for the various user set attributes, and computes class set attributes
 		"""
@@ -174,8 +174,10 @@ class Likelihood:
 		self.num_iterations = num_iterations
 		self.time_step = time_step
 		self.max_masses = max_masses
-		self.eta = eta
 		self.surrogate_points = surrogate_points
+
+		# Set default eta
+		self.eta = None
 
 		# Let everyone know that you hard coded the fact that you're only checking for one or two additional planets
 		if self.unknown_bodies not in [1, 2]:
@@ -207,6 +209,12 @@ class Likelihood:
 			"Maximum number of unknown bodies cannot exceed 2 due to hard-coding considerations."
 			"Please set the unknown_bodies field to either 1 or 2."
 		)
+
+	def set_eta(self, eta):
+		"""
+		Set the eta parameter that controls the size of steps in MCMC
+		"""
+		self.eta = eta
 
 	def extract_trajectory_information(self, unknown_masses, epsilon=1e-16):
 		"""
@@ -288,6 +296,12 @@ class Likelihood:
 		In reality, returns the log of the gaussian differences
 		Difference should only be computed for the trajectories of the KNOWN bodies
 		"""
+		# Check that eta is set
+		if self.eta is None:
+			raise ValueError(
+				"The eta parameter has not been set. Please use the .set_eta() method to set the parameter."
+			)
+
 		# Determine the trajectory associated with the guess masses
 		trajectory = self.interpolate_trajectory_information(guess_masses)
 
@@ -390,6 +404,6 @@ class Likelihood:
 """
 GOALS:
 	- Fix broken 2D interpolation
-	- Add parameters first_n, last_n to deal with either the first n% or last n% of the position data
+	- Add parameter last_n to deal with the last n% of the position data
 	- Add unit tests
 """
