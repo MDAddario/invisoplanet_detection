@@ -309,7 +309,7 @@ class Likelihood:
 		# Else return the likelihood
 		return self.log_likelihood(guess_masses)
 
-	def plot_posterior(self, filename=None, num=100):
+	def plot_posterior(self, filename=None, num=100, floor=None):
 		"""
 		Plot the posterior associated with the optimization problem
 		"""
@@ -328,10 +328,14 @@ class Likelihood:
 										self.true_trajectory_information, self.eta))
 
 			# Compute the interpolated model gaussian differences
-			posterior_logs = []
+			posterior_logs = np.empty(num)
 			interp_masses = np.linspace(0, self.max_masses[0], num=num)
-			for mass_1 in interp_masses:
-				posterior_logs.append(self.log_posterior([mass_1]))
+			for i_1, mass_1 in enumerate(interp_masses):
+				posterior_logs[i_1] = self.log_posterior([mass_1])
+
+				# Set a minimum value
+				if floor is not None:
+					posterior_logs[i_1] = max(posterior_logs[i_1], floor)
 
 			# Plot all the relevant info
 			ax.scatter(self.mass_1_arr, surrogate_logs, c='blue', label="Surrogate model posterior")
@@ -356,6 +360,10 @@ class Likelihood:
 			for i_1, mass_1 in enumerate(interp_masses_1):
 				for i_2, mass_2 in enumerate(interp_masses_2):
 					posterior_logs[i_1, i_2] = self.log_posterior([mass_1, mass_2])
+
+					# Set a minimum value
+					if floor is not None:
+						posterior_logs[i_1, i_2] = max(posterior_logs[i_1, i_2], floor)
 
 			# Plot all the relevant
 			im = plt.imshow(posterior_logs, cmap='inferno')
@@ -402,19 +410,18 @@ if __name__ == "__main__":
 	time_step = 0.5
 	max_masses = np.array([1, 9.547919e-4]) * 2  # Actual masses times 2
 	eta = 1
-	surrogate_points = 5
+	surrogate_points = 9
 
 	# Construct the likelihood object
 	likelihood = Likelihood(known_bodies, unknown_bodies, parameters_filename, num_iterations, time_step,
 							max_masses, eta, surrogate_points)
 
 	# Plot the posterior
-	likelihood.plot_posterior("1_2_2_posterior.pdf", num=20)
+	likelihood.plot_posterior("1_2_2_posterior.pdf", num=20, floor=-10)
 
 """
 GOALS:
 	- Fix broken 2D interpolation
-	- Visualize posterior for 2D
 	- Add parameters first_n, last_n to deal with either the first n% or last n% of the position data
 	- Add unit tests
 """
