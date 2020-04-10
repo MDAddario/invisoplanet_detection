@@ -58,7 +58,7 @@ if __name__ == "__main__":
 	# T = T = 4330.595 # tropical orbital period in days
 	# jupiter_orbit_params = [a, ecc]
 	#
-	# kep_x_pos, kep_y_pos, delta = kepler_test(20000, 0.5, jupiter_orbit_params, all_pos[1])
+	# kep_x_pos, kep_y_pos, delta = kepler_check(20000, 0.5, jupiter_orbit_params, all_pos[1])
 	# kep_z_pos = np.zeros(n_steps)
 	#
 	# kep_pos = []

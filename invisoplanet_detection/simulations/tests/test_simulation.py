@@ -80,6 +80,9 @@ class TestSimulation():
             nt.assert_almost_equal(com.vel[i], 0)
         nt.assert_almost_equal(com.mass, 2)
 
+        # check a file is created
+        nt.assert_equal(True, os.path.isfile('testoutput.txt'))
+
 
 
     def test_iterate(self):
@@ -229,7 +232,7 @@ class TestSimulation():
             nt.assert_almost_equal(Li[i], Lf[i])
 
         # kepler problem as a overall test of the physics is included as an actual function in
-        # simulation.py
+        # simulation.py - the function's name is kepler_check
 
 
 
