@@ -57,18 +57,10 @@ class TrajectoryInformation:
 		if likelihood.unknown_bodies == 1:
 
 			# Determine indices of nearest interpolation objects
-			index = np.interp(guess_masses[0], likelihood.mass_1_arr, np.arange(likelihood.surrogate_points))
-			left_index = int(index)
-			right_index = left_index + 1
-			weight = index - left_index
-
-			# Handle right edge case!
-			if right_index == likelihood.surrogate_points:
-				right_index -= 1
+			values = TrajectoryInformation._find_nearest_indices(guess_masses[0], likelihood.mass_1_arr)
 
 			# Interpolate!
-			return likelihood.surrogate_model[left_index] * (1 - weight) \
-					+ likelihood.surrogate_model[right_index] * weight
+			return TrajectoryInformation._weighted_linear_average(likelihood.surrogate_model, *values)
 
 		elif likelihood.unknown_bodies == 2:
 
@@ -80,6 +72,27 @@ class TrajectoryInformation:
 
 		else:
 			Likelihood.hardcoded_error_message()
+
+	@staticmethod
+	def _find_nearest_indices(mass, mass_array):
+
+		# Determine indices of nearest interpolation objects
+		index = np.interp(mass, mass_array, np.arange(len(mass_array)))
+		left_index = int(index)
+		right_index = left_index + 1
+		weight = index - left_index
+
+		# Handle right edge case!
+		if right_index == len(mass_array):
+			right_index -= 1
+
+		return left_index, right_index, weight
+
+	@staticmethod
+	def _weighted_linear_average(model, left_index, right_index, weight):
+
+		# Return linearly weighted average
+		return model[left_index] * (1 - weight) + model[right_index] * weight
 
 	@staticmethod
 	def log_gaussian_difference(cur_trajectory, true_trajectory, eta):
@@ -397,5 +410,6 @@ class Likelihood:
 """
 GOALS:
 	- Fix broken 2D interpolation
+	- Make functions used in the plotting stand-alone methods
 	- Add unit tests
 """
