@@ -8,23 +8,7 @@ import os
 
 class TestSimulation():
 
-    # total energy of a PhaseSpace object
-    def totalenergy(self, space):
-        x, v, m = space.arrayvals()
-        kinetic = np.sum(0.5 * v ** 2 * m)
-
-        potential = - space.bodies[0].G * np.product(m) / space.bodies[0].scalardistance(space.bodies[1])
-        return kinetic + potential
-
-
-    # total angular momentum of a PhaseSpace object
-    def angularmomentum(self, space):
-        x, v, m = space.arrayvals()
-        return np.cross(x, m * v)
-
-
-    def test_initialize(self):
-
+    def setUp(self):
         # setup ***
         data = {}
         data['bodies'] = []
@@ -56,6 +40,28 @@ class TestSimulation():
 
         with open(testfile, 'w') as f:
             json.dump(data, f)
+
+        return testfile, testout
+
+
+    # total energy of a PhaseSpace object
+    def totalenergy(self, space):
+        x, v, m = space.arrayvals()
+        kinetic = np.sum(0.5 * v ** 2 * m)
+
+        potential = - space.bodies[0].G * np.product(m) / space.bodies[0].scalardistance(space.bodies[1])
+        return kinetic + potential
+
+
+    # total angular momentum of a PhaseSpace object
+    def angularmomentum(self, space):
+        x, v, m = space.arrayvals()
+        return np.cross(x, m * v)
+
+    @nt.with_setup(setUp)
+    def test_initialize(self):
+
+        testfile, testout = self.setUp()
 
         space, outfile = initialize(testfile, testout)
 
@@ -84,40 +90,10 @@ class TestSimulation():
         nt.assert_equal(True, os.path.isfile('testoutput.txt'))
 
 
-
+    @nt.with_setup(setUp)
     def test_iterate(self):
 
-        # setup ***
-        data = {}
-        data['bodies'] = []
-        data['bodies'].append({
-            'mass': 1,
-            "init_pos": {
-                "x": 1,
-                "y": 1
-            },
-            "init_vel": {
-                "x": -1,
-                "y": -1
-            }
-        })
-        data['bodies'].append({
-            'mass': 1,
-            "init_pos": {
-                "x": -1,
-                "y": -1
-            },
-            "init_vel": {
-                "x": -1,
-                "y": -1
-            }
-        })
-
-        testfile = 'testdata.json'
-        testout = 'testoutput.txt'
-
-        with open(testfile, 'w') as f:
-            json.dump(data, f)
+        testfile, testout = self.setUp()
 
         space_i, outfile = initialize(testfile, testout)
         space_f = iterate(space_i, 1)
@@ -157,42 +133,13 @@ class TestSimulation():
             nt.assert_almost_equal(Li[i], Lf[i])
 
 
+    @nt.with_setup(setUp)
     def test_simulate(self):
 
-        # setup ***
-        data = {}
-        data['bodies'] = []
-        data['bodies'].append({
-            'mass': 1,
-            "init_pos": {
-                "x": 1,
-                "y": 1
-            },
-            "init_vel": {
-                "x": -1,
-                "y": -1
-            }
-        })
-        data['bodies'].append({
-            'mass': 1,
-            "init_pos": {
-                "x": -1,
-                "y": -1
-            },
-            "init_vel": {
-                "x": -1,
-                "y": -1
-            }
-        })
-
-        testfile = 'testdata.json'
-        testout = 'testoutput.txt'
-
-        with open(testfile, 'w') as f:
-            json.dump(data, f)
+        testfile, testout = self.setUp()
 
         space_i, outfile = initialize(testfile, testout)
-        space_f = iterate(space_i, 1)
+        space_f = simulate(testfile, 100, 0.5, testout)
 
         xi, vi, mi = space_i.arrayvals()
         xf, vf, mf = space_f.arrayvals()
