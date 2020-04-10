@@ -56,7 +56,19 @@ class TrajectoryInformation:
 		# Treat cases differently depending on the number of unknown bodies
 		if likelihood.unknown_bodies == 1:
 
-			return np.interp(guess_masses[0], likelihood.mass_1_arr, likelihood.surrogate_model)
+			# Determine indices of nearest interpolation objects
+			index = np.interp(guess_masses[0], likelihood.mass_1_arr, np.arange(likelihood.surrogate_points))
+			left_index = int(index)
+			right_index = left_index + 1
+			weight = index - left_index
+
+			# Handle right edge case!
+			if right_index == likelihood.surrogate_points:
+				right_index -= 1
+
+			# Interpolate!
+			return likelihood.surrogate_model[left_index] * (1 - weight) \
+					+ likelihood.surrogate_model[right_index] * weight
 
 		elif likelihood.unknown_bodies == 2:
 
