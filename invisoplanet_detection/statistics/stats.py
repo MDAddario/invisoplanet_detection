@@ -1,6 +1,7 @@
 import os
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+from scipy.interpolate import interp2d
 from invisoplanet_detection.simulations import *
 
 
@@ -8,32 +9,31 @@ class TrajectoryInformation:
 	"""
 	Reduces the complete time-ordered phase space information into a smaller data set that
 	will be used to compute the likelihood function.
-
-	For example, extract the position data for every body at 10 evenly spaced times
-	from the last 10 % of the trajectory data.
 	"""
 
-	def __init__(self, posdata, known_bodies, unknown_bodies, last_n):
+	@staticmethod
+	def structure_information(pos_data, known_bodies, unknown_bodies, last_n):
 		"""
-		self.pos_data:
+		Structure the trajectory position information into a 3D array
 		axis 0 = time_step
 		axis 1 = position_coordinate
 		axis 2 = body index
 		"""
-		# Aggregate the position data into a 3D matrix
+		# Aggregate the position data for each body
 		all_pos = []
 
 		for i in range(known_bodies):
-			pi_idx = np.arange(i, len(posdata), step=known_bodies + unknown_bodies)
-			all_pos.append(posdata[pi_idx])
+			pi_idx = np.arange(i, len(pos_data), step=known_bodies + unknown_bodies)
+			all_pos.append(pos_data[pi_idx])
 
-		# Store the data as the only attribute
-		self.pos_data = np.stack(all_pos, axis=2)
+		# Stack all the data into a single 3D array
+		combined_data = np.stack(all_pos, axis=2)
 
 		# Reduce the information
-		self.reduce_information(last_n)
+		return TrajectoryInformation.reduce_information(combined_data, last_n)
 
-	def reduce_information(self, last_n):
+	@staticmethod
+	def reduce_information(data, last_n):
 		"""
 		Truncate the data set of position data
 		"""
@@ -44,9 +44,9 @@ class TrajectoryInformation:
 			)
 
 		# Truncate to last_n% of the data set (temporally)
-		max_index = self.pos_data.shape[0]
+		max_index = data.shape[0]
 		cutoff_index = max_index * (100 - last_n) // 100
-		self.pos_data = self.pos_data[cutoff_index:, :, :]
+		return data[cutoff_index:, :, :]
 
 	@staticmethod
 	def interpolate_information(likelihood, guess_masses):
@@ -56,49 +56,18 @@ class TrajectoryInformation:
 		# Treat cases differently depending on the number of unknown bodies
 		if likelihood.unknown_bodies == 1:
 
-			return TrajectoryInformation.interpolate(guess_masses[0], likelihood.mass_1_arr, likelihood.surrogate_model)
+			return np.interp(guess_masses[0], likelihood.mass_1_arr, likelihood.surrogate_model)
 
 		elif likelihood.unknown_bodies == 2:
 
-			# Interpolate for mass 1
-			index = int(np.interp(guess_masses[1], likelihood.mass_2_arr, np.arange(len(likelihood.mass_2_arr))))
-			horizontal = TrajectoryInformation.interpolate(guess_masses[0], likelihood.mass_1_arr,
-															likelihood.surrogate_model[index, :])
-
-			# Interpolate for mass 2
-			index = int(np.interp(guess_masses[0], likelihood.mass_1_arr, np.arange(len(likelihood.mass_1_arr))))
-			vertical = TrajectoryInformation.interpolate(guess_masses[1], likelihood.mass_2_arr,
-															likelihood.surrogate_model[:, index])
-
-			# Average them out
-			trajectory = TrajectoryInformation
-			trajectory.pos_data = (horizontal.pos_data + vertical.pos_data) / 2
-			return trajectory
+			raise ValueError(
+				"2D interpolation is not yet setup."
+				"It will probably use: "
+				"from scipy.interpolate import interp2d"
+			)
 
 		else:
 			Likelihood.hardcoded_error_message()
-
-	@staticmethod
-	def interpolate(guess_mass, mass_array, surrogate_model):
-
-		# Create the new trajectory object (purposely no constructor call)
-		trajectory = TrajectoryInformation
-
-		# Determine indices of nearest interpolation objects
-		index = np.interp(guess_mass, mass_array, np.arange(len(mass_array)))
-		left_index = int(index)
-		right_index = left_index + 1
-		weight = index - left_index
-
-		# Handle right edge case!
-		if right_index == len(mass_array):
-			right_index -= 1
-
-		# Interpolate!
-		trajectory.pos_data = surrogate_model[left_index].pos_data * (1 - weight) \
-							+ surrogate_model[right_index].pos_data * weight
-
-		return trajectory
 
 	@staticmethod
 	def log_gaussian_difference(cur_trajectory, true_trajectory, eta):
@@ -108,7 +77,7 @@ class TrajectoryInformation:
 		In reality, returns the log of the gaussian differences
 		Difference should only be computed for the trajectories of the KNOWN bodies
 		"""
-		difference = -0.5 * np.sum(np.square(cur_trajectory.pos_data - true_trajectory.pos_data) / eta + np.log(eta))
+		difference = -0.5 * np.sum(np.square(cur_trajectory - true_trajectory) / eta + np.log(eta))
 
 		# Handle nans
 		if np.isnan(difference):
@@ -249,8 +218,8 @@ class Likelihood:
 		# Delete the file
 		os.remove(out_file)
 
-		# Return a reduced and formatted object
-		return TrajectoryInformation(posdata, self.known_bodies, self.unknown_bodies, self.last_n)
+		# Return a structured and reduced np.ndarray object
+		return TrajectoryInformation.structure_information(posdata, self.known_bodies, self.unknown_bodies, self.last_n)
 
 	def construct_surrogate_model(self):
 		"""
@@ -261,7 +230,7 @@ class Likelihood:
 		if self.unknown_bodies == 1:
 
 			# Allocate memory for surrogate model
-			self.surrogate_model = np.empty(self.surrogate_points, dtype=object)
+			self.surrogate_model = np.empty(self.surrogate_points, dtype=np.ndarray)
 
 			# Determine mass values to simulate
 			self.mass_1_arr = np.linspace(0, self.max_masses[0], num=self.surrogate_points)
@@ -273,7 +242,7 @@ class Likelihood:
 		elif self.unknown_bodies == 2:
 
 			# Allocate memory for surrogate model
-			self.surrogate_model = np.empty((self.surrogate_points, self.surrogate_points), dtype=object)
+			self.surrogate_model = np.empty((self.surrogate_points, self.surrogate_points), dtype=np.ndarray)
 
 			# Determine mass values to simulate
 			self.mass_1_arr = np.linspace(0, self.max_masses[0], num=self.surrogate_points)
@@ -416,6 +385,5 @@ class Likelihood:
 """
 GOALS:
 	- Fix broken 2D interpolation
-	- Add parameter last_n to deal with the last n% of the position data
 	- Add unit tests
 """
