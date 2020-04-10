@@ -64,11 +64,22 @@ class TrajectoryInformation:
 
 		elif likelihood.unknown_bodies == 2:
 
-			raise ValueError(
-				"2D interpolation is not yet setup."
-				"It will probably use: "
-				"from scipy.interpolate import interp2d"
-			)
+			# Determine spread along each axis
+			vertical_values = TrajectoryInformation._find_nearest_indices(guess_masses[0], likelihood.mass_1_arr)
+			horizontal_values = TrajectoryInformation._find_nearest_indices(guess_masses[1], likelihood.mass_2_arr)
+
+			# Interpolate ABOVE the point
+			top_index = vertical_values[1]
+			top_model = TrajectoryInformation._weighted_linear_average(likelihood.surrogate_model[top_index, :],
+																		*horizontal_values)
+
+			# Interpolate BELOW the point
+			bot_index = vertical_values[0]
+			bot_model = TrajectoryInformation._weighted_linear_average(likelihood.surrogate_model[bot_index, :],
+																		*horizontal_values)
+
+			# Now interpolate BETWEEN the top and bottom
+			return TrajectoryInformation._weighted_linear_average([bot_model, top_model], 0, 1, vertical_values[2])
 
 		else:
 			Likelihood.hardcoded_error_message()
@@ -385,7 +396,7 @@ class Likelihood:
 						posterior_logs[i_1, i_2] = max(posterior_logs[i_1, i_2], floor)
 
 			# Plot all the relevant
-			im = plt.imshow(posterior_logs, cmap='inferno')
+			im = plt.imshow(posterior_logs.T, cmap='inferno')
 			fig.colorbar(im, fraction=0.045, ax=ax)
 			ax.axvline(self.true_unknown_masses[0] * num / self.max_masses[0], c='red', label="True mass 1")
 			ax.axhline(self.true_unknown_masses[1] * num / self.max_masses[1], c='red', label="True mass 2")
@@ -409,7 +420,6 @@ class Likelihood:
 
 """
 GOALS:
-	- Fix broken 2D interpolation
 	- Make functions used in the plotting stand-alone methods
 	- Add unit tests
 """
