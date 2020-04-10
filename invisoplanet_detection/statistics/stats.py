@@ -339,6 +339,75 @@ class Likelihood:
 		# Else return the likelihood
 		return self.log_likelihood(guess_masses)
 
+	def surrogate_values(self):
+		"""
+		Determines the posteriors associated with each surrogate lattice point WITHOUT
+		using the interpolation scheme
+		"""
+		# Treat cases differently depending on the number of unknown bodies
+		if self.unknown_bodies == 1:
+
+			# Compute the surrogate model gaussian differences
+			surrogate_logs = np.empty(self.surrogate_points)
+			for i in range(self.surrogate_points):
+				surrogate_logs[i] = TrajectoryInformation.log_gaussian_difference(self.surrogate_model[i],
+																self.true_trajectory_information, self.eta)
+
+			return surrogate_logs
+
+		elif self.unknown_bodies == 2:
+
+			# Compute the surrogate model gaussian differences
+			surrogate_logs = np.empty((self.surrogate_points, self.surrogate_points))
+			for i in range(self.surrogate_points):
+				for j in range(self.surrogate_points):
+					surrogate_logs[i, j] = TrajectoryInformation.log_gaussian_difference(self.surrogate_model[i, j],
+																		self.true_trajectory_information, self.eta)
+
+			return surrogate_logs
+
+		else:
+			Likelihood.hardcoded_error_message()
+
+	def linspace(self, num=100, floor=None):
+		"""
+		Creates a linspace of masses for each mass dimension and computes the associated
+		grid of posteriors
+		"""
+		# Treat cases differently depending on the number of unknown bodies
+		if self.unknown_bodies == 1:
+
+			# Compute the interpolated model gaussian differences
+			posterior_logs = np.empty(num)
+			interp_masses = np.linspace(0, self.max_masses[0], num=num)
+			for i_1, mass_1 in enumerate(interp_masses):
+				posterior_logs[i_1] = self.log_posterior([mass_1])
+
+				# Set a minimum value
+				if floor is not None:
+					posterior_logs[i_1] = max(posterior_logs[i_1], floor)
+
+			return interp_masses, posterior_logs
+
+		elif self.unknown_bodies == 2:
+
+			# Compute the interpolated model gaussian differences
+			posterior_logs = np.empty((num, num))
+			interp_masses_1 = np.linspace(0, self.max_masses[0], num=num)
+			interp_masses_2 = np.linspace(0, self.max_masses[1], num=num)
+			for i_1, mass_1 in enumerate(interp_masses_1):
+				for i_2, mass_2 in enumerate(interp_masses_2):
+					posterior_logs[i_1, i_2] = self.log_posterior([mass_1, mass_2])
+
+					# Set a minimum value
+					if floor is not None:
+						posterior_logs[i_1, i_2] = max(posterior_logs[i_1, i_2], floor)
+
+			return interp_masses_1, interp_masses_2, posterior_logs
+
+		else:
+			Likelihood.hardcoded_error_message()
+
 	def plot_posterior(self, filename=None, num=100, floor=None):
 		"""
 		Plot the posterior associated with the optimization problem
@@ -352,20 +421,10 @@ class Likelihood:
 		if self.unknown_bodies == 1:
 
 			# Compute the surrogate model gaussian differences
-			surrogate_logs = []
-			for i in range(self.surrogate_points):
-				surrogate_logs.append(TrajectoryInformation.log_gaussian_difference(self.surrogate_model[i],
-										self.true_trajectory_information, self.eta))
+			surrogate_logs = self.surrogate_values()
 
 			# Compute the interpolated model gaussian differences
-			posterior_logs = np.empty(num)
-			interp_masses = np.linspace(0, self.max_masses[0], num=num)
-			for i_1, mass_1 in enumerate(interp_masses):
-				posterior_logs[i_1] = self.log_posterior([mass_1])
-
-				# Set a minimum value
-				if floor is not None:
-					posterior_logs[i_1] = max(posterior_logs[i_1], floor)
+			interp_masses, posterior_logs = self.linspace(num, floor)
 
 			# Plot all the relevant info
 			ax.scatter(self.mass_1_arr, surrogate_logs, c='blue', label="Surrogate model posterior")
@@ -384,16 +443,7 @@ class Likelihood:
 		elif self.unknown_bodies == 2:
 
 			# Compute the interpolated model gaussian differences
-			posterior_logs = np.empty((num, num))
-			interp_masses_1 = np.linspace(0, self.max_masses[0], num=num)
-			interp_masses_2 = np.linspace(0, self.max_masses[1], num=num)
-			for i_1, mass_1 in enumerate(interp_masses_1):
-				for i_2, mass_2 in enumerate(interp_masses_2):
-					posterior_logs[i_1, i_2] = self.log_posterior([mass_1, mass_2])
-
-					# Set a minimum value
-					if floor is not None:
-						posterior_logs[i_1, i_2] = max(posterior_logs[i_1, i_2], floor)
+			interp_masses_1, interp_masses_2, posterior_logs = self.linspace(num, floor)
 
 			# Plot all the relevant
 			im = plt.imshow(posterior_logs.T, cmap='inferno')
