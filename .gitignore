@@ -3,3 +3,6 @@ __pycache__
 preplanning.aux
 preplanning.log
 preplanning.synctex.gz
+testdata.json
+testoutput.txt
+testx.txt

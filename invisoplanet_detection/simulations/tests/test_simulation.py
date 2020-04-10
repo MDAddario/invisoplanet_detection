@@ -3,9 +3,24 @@ import nose.tools as nt
 import numpy as np
 from invisoplanet_detection.simulations.simulation import *
 import json
+import os
 
 
 class TestSimulation():
+
+    # total energy of a PhaseSpace object
+    def totalenergy(self, space):
+        x, v, m = space.arrayvals()
+        kinetic = np.sum(0.5 * v ** 2 * m)
+
+        potential = - space.bodies[0].G * np.product(m) / space.bodies[0].scalardistance(space.bodies[1])
+        return kinetic + potential
+
+
+    # total angular momentum of a PhaseSpace object
+    def angularmomentum(self, space):
+        x, v, m = space.arrayvals()
+        return np.cross(x, m * v)
 
 
     def test_initialize(self):
@@ -113,12 +128,6 @@ class TestSimulation():
         nt.assert_equal(np.any(np.isnan(mf)), False)
 
         # make sure none of the bodies are stacked on top of each other
-        # distances = []
-        # for bodyi in space_f.bodies:
-        #     for bodyj in space_f.bodies:
-        #         distances.extend([bodyi.scalardistance(bodyj)])
-        # disttest = np.where(distances > 1e-6)
-        # nt.assert_greater(disttest, True)
         nt.assert_greater(space_f.bodies[0].scalardistance(space_f.bodies[1]), 1e-6)
 
         # make sure none of the masses have changed
@@ -135,40 +144,93 @@ class TestSimulation():
 
         # check the total energy before and after iterating, make sure it hasn't changed significantly
         # *** right now only works for a 2-body system
-        def totalenergy(space):
-            x, v, m = space.arrayvals()
-            kinetic = np.sum(0.5 * v**2 * m)
-
-            potential = - space.bodies[0].G * np.product(m) / space.bodies[0].scalardistance(space.bodies[1])
-            return kinetic + potential
-
-        nt.assert_almost_equal(totalenergy(space_i), totalenergy(space_f))
+        nt.assert_almost_equal(self.totalenergy(space_i), self.totalenergy(space_f))
 
         # calculate angular momentum before and after iterating, make sure it hasn't changed significantly
-        def angularmomentum(space):
-            x, v, m = space.arrayvals()
-            return np.cross(x, m*v)
 
-        Li = angularmomentum(space_i)
-        Lf = angularmomentum(space_f)
+        Li = self.angularmomentum(space_i)
+        Lf = self.angularmomentum(space_f)
         for i in range(2):
             nt.assert_almost_equal(Li[i], Lf[i])
 
 
     def test_simulate(self):
 
+        # setup ***
+        data = {}
+        data['bodies'] = []
+        data['bodies'].append({
+            'mass': 1,
+            "init_pos": {
+                "x": 1,
+                "y": 1
+            },
+            "init_vel": {
+                "x": -1,
+                "y": -1
+            }
+        })
+        data['bodies'].append({
+            'mass': 1,
+            "init_pos": {
+                "x": -1,
+                "y": -1
+            },
+            "init_vel": {
+                "x": -1,
+                "y": -1
+            }
+        })
+
+        testfile = 'testdata.json'
+        testout = 'testoutput.txt'
+
+        with open(testfile, 'w') as f:
+            json.dump(data, f)
+
+        space_i, outfile = initialize(testfile, testout)
+        space_f = iterate(space_i, 1)
+
+        xi, vi, mi = space_i.arrayvals()
+        xf, vf, mf = space_f.arrayvals()
+
         # check for NaNs
-        # check a file is created
+        nt.assert_equal(np.any(np.isnan(xf)), False)
+        nt.assert_equal(np.any(np.isnan(vf)), False)
+        nt.assert_equal(np.any(np.isnan(mf)), False)
+
         # make sure none of the bodies are stacked on top of each other
+        nt.assert_greater(space_f.bodies[0].scalardistance(space_f.bodies[1]), 1e-6)
+
+        # check a file is created
+        nt.assert_equal(True, os.path.isfile('testoutput.txt'))
+
         # make sure none of the masses have changed
+        for i in range(2):
+            nt.assert_equal(mi[i], mf[i])
+
         # make sure the CoM has not moved
+        com_i = space_i.findCoM()
+        com_f = space_f.findCoM()
+
+        for i in range(2):
+            nt.assert_equal(com_i.pos[i], com_f.pos[i])
+            nt.assert_equal(com_i.vel[i], com_f.vel[i])
+
         # calculate total energy before and after iterating, make sure it hasn't changed significantly
+        # check the total energy before and after iterating, make sure it hasn't changed significantly
+        # *** right now only works for a 2-body system
+        nt.assert_almost_equal(self.totalenergy(space_i), self.totalenergy(space_f))
+
         # calculate total angular momentum before and after iterating, make sure it hasn't changed significantly
+        Li = self.angularmomentum(space_i)
+        Lf = self.angularmomentum(space_f)
+        for i in range(2):
+            nt.assert_almost_equal(Li[i], Lf[i])
 
-        # kepler problem as a overall test of the physics
+        # kepler problem as a overall test of the physics is included as an actual function in
+        # simulation.py
 
-
-        pass
 
 
 if __name__ == '__main__':
