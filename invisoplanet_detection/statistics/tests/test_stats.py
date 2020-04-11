@@ -38,13 +38,34 @@ class TestStats(unittest.TestCase):
 	Ensure log_posterior provides -np.inf when given a mass outside of the mass bounds
 		- One mass below and one mass above
 
-	Ensure constructor for Likelihood() validates EVERY input properly
-		- Consider every other possibility
-		- Also code this in the constructor
-
 	Ensure TrajectoryInformation.structure_information() returns the appropriate size of arrays
+		- dimensions are appropriate
 		- last_n = 100, 50, 10, ...
 	"""
+
+	def test_trajectory_information(self):
+
+		# Generate some pos_data
+		known_bodies = 2
+		unknown_bodies = 1
+		num_steps = 100
+		pos_data = np.ones(((known_bodies + unknown_bodies) * num_steps, 2))
+
+		# Create full sized data set
+		trajectory = TrajectoryInformation.structure_information(pos_data, known_bodies, unknown_bodies, last_n=100)
+
+		# Ensure trajectory dimensions are appropriate
+		nt.assert_equal(trajectory.shape[0], num_steps)
+		nt.assert_equal(trajectory.shape[1], 2)
+		nt.assert_equal(trajectory.shape[2], known_bodies)
+
+		# Ensure truncation works
+		for divisor in [1, 2, 4, 5, 10]:
+
+			last_n = 100 // divisor
+			trajectory = TrajectoryInformation.structure_information(pos_data, known_bodies, unknown_bodies, last_n)
+
+			nt.assert_equal(trajectory.shape[0], num_steps // divisor)
 
 	def test_value_errors(self):
 
