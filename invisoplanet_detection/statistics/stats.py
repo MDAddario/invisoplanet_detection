@@ -1,7 +1,6 @@
 import os
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-from scipy.interpolate import interp2d
 from invisoplanet_detection.simulations import *
 
 
