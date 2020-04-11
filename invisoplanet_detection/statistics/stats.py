@@ -344,6 +344,12 @@ class Likelihood:
 		Determines the posteriors associated with each surrogate lattice point WITHOUT
 		using the interpolation scheme
 		"""
+		# Check that eta is set
+		if self.eta is None:
+			raise ValueError(
+				"The eta parameter has not been set. Please use the .set_eta() method to set the parameter."
+			)
+
 		# Treat cases differently depending on the number of unknown bodies
 		if self.unknown_bodies == 1:
 
