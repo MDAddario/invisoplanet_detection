@@ -8,6 +8,7 @@ Example uses of nosetests:
 	- nt.assert_raises(ValueError, function_name, argument_0, argument_1)
 	- nt.assert_almost_equal(number_one, number_two, places=3)
 	- nt.assert_equal(number_one, number_two)
+	- nt.assert_true(boolean_expression)
 """
 
 
@@ -64,18 +65,48 @@ class TestStats(unittest.TestCase):
 
 	def test_statistics(self):
 
+		# System A
+		a = Likelihood(known_bodies=1, unknown_bodies=1, parameters_filename="ic_files/A_sun_1_0_1.json",
+					max_masses=[2 * 9.547919e-4], surrogate_points=5, num_iterations=100, time_step=0.5, last_n=100)
+		TestStats.validate_1D_system(a, True)
+
+		# System B
+		b = Likelihood(known_bodies=1, unknown_bodies=1, parameters_filename="ic_files/B_sun_jup_1_1_1.json",
+					max_masses=[2 * 9.547919e-4], surrogate_points=5, num_iterations=100, time_step=0.5, last_n=100)
+		TestStats.validate_1D_system(b, False)
+
+		# System C
+		c = Likelihood(known_bodies=2, unknown_bodies=1, parameters_filename="ic_files/C_sun_jup_2_0_1.json",
+					max_masses=[2 * 9.547919e-4], surrogate_points=5, num_iterations=100, time_step=0.5, last_n=100)
+		TestStats.validate_1D_system(c, True)
+
 		# System D
 		d = Likelihood(known_bodies=2, unknown_bodies=1, parameters_filename="ic_files/D_sun_jup_sat_2_1_1.json",
 					max_masses=[2 * 0.000285802], surrogate_points=5, num_iterations=100, time_step=0.5, last_n=100)
-		TestStats.validate_X_1_1_system(d)
+		TestStats.validate_1D_system(d, False)
+
+		# System E
+		e = Likelihood(known_bodies=1, unknown_bodies=2, parameters_filename="ic_files/E_sun_jup_1_1_2.json",
+					max_masses=[2 * 9.547919e-4, 2 * 9.547919e-4], surrogate_points=5, num_iterations=100)
+		TestStats.validate_2D_system(e, True)
+
+		# System F
+		f = Likelihood(known_bodies=1, unknown_bodies=2, parameters_filename="ic_files/F_sat_sun_jup_sat_1_2_2.json",
+					max_masses=[2 * 1, 2 * 9.547919e-4], surrogate_points=5, num_iterations=100)
+		TestStats.validate_2D_system(f, False)
+
+		# System G
+		g = Likelihood(known_bodies=2, unknown_bodies=2, parameters_filename="ic_files/G_sun_jup_sat_2_1_2.json",
+					max_masses=[2 * 0.000285802, 2 * 9.547919e-4], surrogate_points=5, num_iterations=100)
+		TestStats.validate_2D_system(g, True)
 
 	@staticmethod
-	def validate_X_1_1_system(likelihood):
+	def validate_1D_system(likelihood, ignore_zero=False):
 
 		likelihood.set_eta(1)
 
 		# Ensure equivalence between surrogate model and interpolation
-		# Note the number of surrogate points MUST be odd to contain the actual masss
+		# Note the number of surrogate points MUST be odd to contain the actual mass
 		surrogate_logs = likelihood.surrogate_values()
 		_, posterior_logs = likelihood.linspace(num=likelihood.surrogate_points, floor=None)
 		for i in range(likelihood.surrogate_points):
@@ -91,7 +122,37 @@ class TestStats(unittest.TestCase):
 		count = 100
 		_, posterior_logs = likelihood.linspace(num=count, floor=None)
 		for i in range(count):
+			if ignore_zero and i == 0:
+				continue
 			nt.assert_true(posterior_logs[i] < 0)
+
+	@staticmethod
+	def validate_2D_system(likelihood, ignore_zero=False):
+
+		likelihood.set_eta(1)
+
+		# Ensure equivalence between surrogate model and interpolation
+		# Note the number of surrogate points MUST be odd to contain the actual mass
+		surrogate_logs = likelihood.surrogate_values()
+		_, _, posterior_logs = likelihood.linspace(num=likelihood.surrogate_points, floor=None)
+		for i in range(likelihood.surrogate_points):
+			for j in range(likelihood.surrogate_points):
+				nt.assert_almost_equal(surrogate_logs[i, j], posterior_logs[i, j])
+
+		# Ensure the interpolated point with the actual masses has posterior zero
+		true_masses = extract_unknown_ic_masses(likelihood.parameters_filename, likelihood.known_bodies)
+		posterior = likelihood.log_posterior(true_masses)
+		nt.assert_almost_equal(posterior, 0)
+
+		# Ensure the posterior at the actual masses is the global maximum
+		# Note the count MUST be even to avoid the actual mass
+		count = 100
+		_, _, posterior_logs = likelihood.linspace(num=count, floor=None)
+		for i in range(count):
+			for j in range(count):
+				if ignore_zero and (i == 0 or j == 0):
+					continue
+				nt.assert_true(posterior_logs[i, j] < 0)
 
 
 if __name__ == '__main__':
