@@ -64,16 +64,34 @@ class TestStats(unittest.TestCase):
 
 	def test_statistics(self):
 
-		# Construct the likelihood object
-		likelihood = Likelihood(known_bodies=2, unknown_bodies=1,
-								parameters_filename="ic_files/D_sun_jup_sat_2_1_1.json", max_masses=[2 * 0.000285802],
-								surrogate_points=1, num_iterations=100, time_step=0.5, last_n=100)
+		# System D
+		d = Likelihood(known_bodies=2, unknown_bodies=1, parameters_filename="ic_files/D_sun_jup_sat_2_1_1.json",
+					max_masses=[2 * 0.000285802], surrogate_points=5, num_iterations=100, time_step=0.5, last_n=100)
+		TestStats.validate_X_1_1_system(d)
 
-		# Set the eta value
+	@staticmethod
+	def validate_X_1_1_system(likelihood):
+
 		likelihood.set_eta(1)
 
-	def print_statement(self):
-		print('wiwza')
+		# Ensure equivalence between surrogate model and interpolation
+		# Note the number of surrogate points MUST be odd to contain the actual masss
+		surrogate_logs = likelihood.surrogate_values()
+		_, posterior_logs = likelihood.linspace(num=likelihood.surrogate_points, floor=None)
+		for i in range(likelihood.surrogate_points):
+			nt.assert_almost_equal(surrogate_logs[i], posterior_logs[i])
+
+		# Ensure the interpolated point with the actual masses has posterior zero
+		true_masses = extract_unknown_ic_masses(likelihood.parameters_filename, likelihood.known_bodies)
+		posterior = likelihood.log_posterior(true_masses)
+		nt.assert_almost_equal(posterior, 0)
+
+		# Ensure the posterior at the actual masses is the global maximum
+		# Note the count MUST be even to avoid the actual mass
+		count = 100
+		_, posterior_logs = likelihood.linspace(num=count, floor=None)
+		for i in range(count):
+			nt.assert_true(posterior_logs[i] < 0)
 
 
 if __name__ == '__main__':
