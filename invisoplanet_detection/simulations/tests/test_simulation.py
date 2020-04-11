@@ -6,7 +6,7 @@ import json
 import os
 
 
-class TestSimulation():
+class TestSimulation(unittest.TestCase):
 
     def setUp(self):
         # setup ***
