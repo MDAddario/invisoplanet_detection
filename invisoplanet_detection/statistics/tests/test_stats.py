@@ -154,6 +154,18 @@ class TestStats(unittest.TestCase):
 					continue
 				nt.assert_true(posterior_logs[i, j] < 0)
 
+	def test_logarithm(self):
+
+		# Ensure posterior is -np.inf when given an invalid mass
+		likelihood = Likelihood(known_bodies=2, unknown_bodies=1,
+								parameters_filename="ic_files/D_sun_jup_sat_2_1_1.json", max_masses=[2 * 0.000285802],
+								surrogate_points=1, num_iterations=100, time_step=0.5, last_n=100)
+		likelihood.set_eta(1)
+		nt.assert_false(np.isfinite(likelihood.log_posterior([-1])))
+		nt.assert_false(np.isfinite(likelihood.log_posterior([1])))
+		nt.assert_true(np.isfinite(likelihood.log_posterior([0])))
+		nt.assert_true(np.isfinite(likelihood.log_posterior([0.00028])))
+
 
 if __name__ == '__main__':
 
