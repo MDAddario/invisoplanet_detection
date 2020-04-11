@@ -5,4 +5,5 @@ preplanning.log
 preplanning.synctex.gz
 testdata.json
 testoutput.txt
-testx.txt
+simulations/testx.txt
+data/testx.txt
