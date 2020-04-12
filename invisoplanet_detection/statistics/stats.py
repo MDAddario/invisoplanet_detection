@@ -338,6 +338,22 @@ class Likelihood:
 		# Else return the likelihood
 		return self.log_likelihood(guess_masses)
 
+	def log_posterior_variable_eta(self, theta, x=None, y=None, y_err=None):
+		"""
+		Serve as the function that will be passed to the MCMC iterator
+		Now also treats eta as an MCMC parameter
+		"""
+		# Unpack parameters
+		*guess_masses, eta = theta
+
+		# Check eta value is reasonable
+		if eta <= 0:
+			return -np.inf
+		self.set_eta(eta)
+
+		# Else call the regular posterior function
+		return self.log_posterior(guess_masses)
+
 	def surrogate_values(self):
 		"""
 		Determines the posteriors associated with each surrogate lattice point WITHOUT

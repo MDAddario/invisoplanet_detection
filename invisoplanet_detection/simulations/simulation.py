@@ -256,7 +256,7 @@ def simulate(icfile, Niter, dt, filename, unknown_masses=None):
 # larger mass init_pos should be the initial cartesian x,y coordinates of the simulated data, and orbit_params should
 # be the orbital parameters of the the elliptical orbit, of the format [a, e, T] where a is the semi-major axis and
 # e is the eccentricity, and T is the period (all units AUs/tropical days)
-def kepler_test(Niter, dt, orbit_params, sim_pos):
+def kepler_check(Niter, dt, orbit_params, sim_pos):
     # units involved
     m_sun = 1.989e30  # kg
     AU = 1.495979e11  # m
