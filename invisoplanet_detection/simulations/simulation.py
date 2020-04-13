@@ -55,7 +55,7 @@ class PhaseSpace:
         # bodies works just like any other list - it can be indexed from zero
         self.bodies = bodies
         self.time = t
-        self.position_limit = 1e6
+        self.position_limit = 1e3
         self.mass_epsilon = 1e-16
 
     # read in all positions, velocities, and masses into single arrays for easy access
@@ -227,8 +227,10 @@ def iterate(space_i, dt):
         xf = body.pos + body.vel * dt + 0.5 * a * dt ** 2
         vf = body.vel + a * dt
 
-        if np.any(xf > space_i.position_limit):
-            body.mass = space_i.mass_epsilon
+        # impose periodic boundary conditions on the system - if a planet goes too far in one direction, it's placed
+        # back into the simulation on the opposite side, with the same velocity
+        if np.any(np.abs(xf) > space_i.position_limit):
+            xf = -xf
 
         bodies_f.extend([Body(xf, vf, body.mass)])
 
