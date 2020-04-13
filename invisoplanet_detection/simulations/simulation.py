@@ -55,6 +55,8 @@ class PhaseSpace:
         # bodies works just like any other list - it can be indexed from zero
         self.bodies = bodies
         self.time = t
+        self.position_limit = 1e3
+        self.mass_epsilon = 1e-16
 
     # read in all positions, velocities, and masses into single arrays for easy access
     def arrayvals(self):
@@ -225,6 +227,11 @@ def iterate(space_i, dt):
         xf = body.pos + body.vel * dt + 0.5 * a * dt ** 2
         vf = body.vel + a * dt
 
+        # impose periodic boundary conditions on the system - if a planet goes too far in one direction, it's placed
+        # back into the simulation on the opposite side, with the same velocity
+        if np.any(np.abs(xf) > space_i.position_limit):
+            vf = np.zeros(2)
+
         bodies_f.extend([Body(xf, vf, body.mass)])
 
     # time at the end of the iteration
@@ -293,8 +300,8 @@ def kepler_check(Niter, dt, orbit_params, sim_pos):
         y_arr.extend([y])
 
     # percent difference: (approximate value - exact value) / mean of the two
-    per_diff_x = np.divide(np.subtract(sim_pos[:, 0], x_arr), (sim_pos[:, 0] + x_arr) / 2)
-    per_diff_y = np.divide(np.subtract(sim_pos[:, 1], y_arr), (sim_pos[:, 1] + y_arr) / 2)
+    per_diff_x = np.divide(np.subtract(sim_pos[:, 0], x_arr), r_sim)
+    per_diff_y = np.divide(np.subtract(sim_pos[:, 1], y_arr), r_sim)
 
     per_diff = [np.mean(per_diff_x), np.mean(per_diff_y)]
 
