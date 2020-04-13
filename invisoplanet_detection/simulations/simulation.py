@@ -230,7 +230,7 @@ def iterate(space_i, dt):
         # impose periodic boundary conditions on the system - if a planet goes too far in one direction, it's placed
         # back into the simulation on the opposite side, with the same velocity
         if np.any(np.abs(xf) > space_i.position_limit):
-            xf = -xf
+            vf = np.zeros(2)
 
         bodies_f.extend([Body(xf, vf, body.mass)])
 
