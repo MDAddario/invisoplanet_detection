@@ -117,6 +117,10 @@ class TrajectoryInformation:
 		# Handle nans
 		if np.isnan(difference):
 			return -np.inf
+			
+		if np.isinf(difference):
+			return -np.inf
+		
 		return difference
 
 
