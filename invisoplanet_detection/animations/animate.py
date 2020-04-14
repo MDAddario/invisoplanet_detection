@@ -2,6 +2,7 @@ import pyglet
 from pyglet.gl import *
 from pyglet.window import key
 from pyglet.window import mouse
+from scipy.spatial.transform import Rotation as R
 import numpy as np
 
 # Setup window
@@ -77,7 +78,7 @@ def create_vertex_list(batch, vertices, normals, indices, color, render_mode=GL_
 
 
 # Create a planet as a sphere
-def planet_creator(position_data, radius, color, num=3):
+def planet_creator(position_data, radius, path_radius, color, num=3):
 
 	# In spherical coordinates
 	def make_vector(theta, phi, radius=1):
@@ -146,21 +147,90 @@ def planet_creator(position_data, radius, color, num=3):
 	vertex_list = create_vertex_list(batch, vertices, normals, indices, color, GL_TRIANGLES, "static", "static")
 
 	# Create object
-	planet = Planet(vertex_list, position_data, color)
+	planet = Planet(vertex_list, position_data, color, path_radius)
 	object_list.append(planet)
 
 	return planet
+
+
+# Create the tube path
+def create_tube_path(position_data, radius, num, color):
+
+	# Create the circle orthog to a normal vector
+	def circle_from_normal(normal, center, radius, num):
+
+		norm = np.linalg.norm
+
+		# Take other vector that is not parallel
+		new_vector = np.copy(normal) + np.array([0, 0, 1])
+
+		# Cross these guys
+		ortho_not_norm = np.cross(normal, new_vector)
+		ortho = ortho_not_norm / norm(ortho_not_norm)
+
+		# Create scaled normal (the magnitude corresponds to the rotation amount)
+		scaled_normal = normal / norm(normal) * 2 * np.pi / num
+
+		# Create our rotation object
+		r = R.from_rotvec(scaled_normal)
+
+		vertices = []
+		normals = []
+
+		for _ in range(num):
+
+			# Rotate the vector
+			ortho = r.apply(ortho)
+
+			vertices.extend(ortho * radius + center)
+			normals.extend(ortho)
+
+		return vertices, normals
+
+	# Keep track of all the vertices and the normals
+	vertices = []
+	normals = []
+	indices = []
+	cur_num = 0
+
+	for i in range(len(position_data) - 1):
+
+		# Compute the verts and norms for the next set of points
+		normal = position_data[i+1] - position_data[i]
+		new_verts, new_norms = circle_from_normal(normal, position_data[i], radius, num)
+
+		# Append to the master list
+		vertices.extend(new_verts)
+		normals.extend(new_norms)
+
+		if i == 0:
+			cur_num += num
+			continue
+
+		# Connect to the last circle
+		for j in range(num):
+			if j == num-1:
+				indices.extend([cur_num, cur_num + j, cur_num + j - num, cur_num - num])
+			else:
+				indices.extend([cur_num + j + 1, cur_num + j, cur_num + j - num, cur_num + j + 1 - num])
+
+		# Keep track of how many vertices we have gone through
+		cur_num += num
+
+	# Create the object
+	return create_vertex_list(batch, vertices, normals, indices, color, GL_QUADS, "static", "static")
 
 
 # Planet object that holds position data and mass data
 class Planet:
 
 	# Constructor
-	def __init__(self, vertex_list, position_data, color):
+	def __init__(self, vertex_list, position_data, color, path_radius):
 		# Store the instance attributes
 		self.vertex_list = vertex_list
 		self.position_data = position_data
 		self.color = color
+		self.path_radius = path_radius
 
 		# Extract a deepcopy of vertices formatted as Nx3 array
 		self.vertices = []
@@ -187,8 +257,8 @@ class Planet:
 		self.vertex_list.delete()
 
 	# Plot n little boxes along the way of the trajectory
-	def _trace_trajectory(self, n=50, mini_mass=1e-10):
-		pass
+	def _trace_trajectory(self):
+		self.trajectory = create_tube_path(self.position_data, self.path_radius, 20, self.color)
 
 	# Determine model center from the vertices
 	def _compute_center(self):

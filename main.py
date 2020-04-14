@@ -39,14 +39,15 @@ if __name__ == "__main__":
 
 		pi_pos = []
 		for x, y, z in zip(pi_x_pos, pi_y_pos, pi_z_pos):
-			pi_pos.append([x, y, z])
+			pi_pos.append(np.asarray([x, y, z]))
 
 		all_pos.append(pi_pos)
 
 	all_colours = ["red", "blue", "yellow", "green"]
 
 	for i in range(n_bodies):
-		pi = planet_creator(all_pos[i], all_mass[i], all_colours[i], num=100)
+		pi = planet_creator(position_data=all_pos[i], radius=all_mass[i], path_radius=0.01,
+							color=all_colours[i], num=100)
 
 	#
 	# # jupiter orbital parameters
