@@ -447,6 +447,12 @@ class Likelihood:
 			# Compute the interpolated model gaussian differences
 			interp_masses, posterior_logs = self.linspace(num, floor)
 
+			# Set the ylimits
+			maximum = np.max(surrogate_logs)
+			minimum = np.min(surrogate_logs)
+			range = maximum - minimum
+			ax.set_ylim([minimum - range/4, maximum + range/4])
+
 			# Plot all the relevant info
 			ax.scatter(self.mass_1_arr, surrogate_logs, c='blue', label="Surrogate model posterior")
 			ax.plot(interp_masses, posterior_logs, c='blue', label="Interpolated posterior")
