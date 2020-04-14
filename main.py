@@ -45,10 +45,8 @@ if __name__ == "__main__":
 
 	all_colours = ["red", "blue", "yellow", "green"]
 
-
-	# all_planets = []
 	for i in range(n_bodies):
-		pi = planet_creator(all_pos[i], all_mass[i], all_colours[i])
+		pi = planet_creator(all_pos[i], all_mass[i], all_colours[i], num=100)
 
 	#
 	# # jupiter orbital parameters
