@@ -1,7 +1,11 @@
 import os
-from tqdm.notebook import tqdm
 import matplotlib.pyplot as plt
 from invisoplanet_detection.simulations import *
+
+try:
+	from tqdm.notebook import tqdm
+except:
+	from tqdm import tqdm
 
 
 class TrajectoryInformation:
