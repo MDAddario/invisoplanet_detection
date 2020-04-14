@@ -7,7 +7,7 @@ Contribution list:
 	Coding:
 		Simulations: DD
 		Statistics: MLD
-		Animations: MLD
+		Animations: MLD + DD
 		MCMC results: GM
 	Writing:
 		Abstract: GM
