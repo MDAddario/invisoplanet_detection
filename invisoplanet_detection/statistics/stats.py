@@ -1,5 +1,5 @@
 import os
-from tqdm import tqdm
+from tqdm.notebook import tqdm
 import matplotlib.pyplot as plt
 from invisoplanet_detection.simulations import *
 
@@ -433,12 +433,12 @@ class Likelihood:
 		else:
 			Likelihood.hardcoded_error_message()
 
-	def plot_posterior(self, filename=None, num=100, floor=None):
+	def plot_posterior(self, filename=None, num=100, floor=None, colorbar=False):
 		"""
 		Plot the posterior associated with the optimization problem
 		"""
 		# Create MPL figure
-		fig = plt.figure(figsize=(16, 9))
+		fig = plt.figure(figsize=(12, 9))
 		ax = fig.add_subplot(111)
 		font = 20
 
@@ -451,11 +451,17 @@ class Likelihood:
 			# Compute the interpolated model gaussian differences
 			interp_masses, posterior_logs = self.linspace(num, floor)
 
+			# Set the ylimits
+			maximum = np.max(surrogate_logs)
+			minimum = np.min(surrogate_logs)
+			range = maximum - minimum
+			ax.set_ylim([minimum - range/4, maximum + range/4])
+
 			# Plot all the relevant info
 			ax.scatter(self.mass_1_arr, surrogate_logs, c='blue', label="Surrogate model posterior")
 			ax.plot(interp_masses, posterior_logs, c='blue', label="Interpolated posterior")
 			ax.axvline(self.true_unknown_masses[0], c='red', label="True mass")
-			ax.legend(fontsize=font)
+			ax.legend(fontsize=font, framealpha=1, loc="lower right")
 			ax.set_xlim([0, self.max_masses[0]])
 			ax.set_xlabel(r'Mass of 1st invisible body $m_1$ (in solar masses)', fontsize=font)
 			ax.set_ylabel(r'Log. posterior probability $\log[P(m_1)]$', fontsize=font)
@@ -472,17 +478,18 @@ class Likelihood:
 
 			# Plot all the relevant
 			im = plt.imshow(posterior_logs.T, cmap='inferno')
-			fig.colorbar(im, fraction=0.045, ax=ax)
-			ax.axvline(self.true_unknown_masses[0] * num / self.max_masses[0], c='red', label="True mass 1")
-			ax.axhline(self.true_unknown_masses[1] * num / self.max_masses[1], c='red', label="True mass 2")
+			if colorbar:
+				fig.colorbar(im, fraction=0.045, ax=ax)
+			ax.axvline(self.true_unknown_masses[0] * num / self.max_masses[0], c='c', label="True masses")
+			ax.axhline(self.true_unknown_masses[1] * num / self.max_masses[1], c='c')
 			ax.legend(fontsize=font)
 			count = 7
 			ax.set_xticks(np.linspace(0, num-1, count))
-			ax.set_xticklabels(np.linspace(0, self.max_masses[0], count), rotation='vertical')
+			ax.set_xticklabels(np.linspace(0, self.max_masses[0] * 1e3, count), rotation='vertical')
 			ax.set_yticks(np.linspace(0, num-1, count))
-			ax.set_yticklabels(np.linspace(0, self.max_masses[1], count))
-			ax.set_xlabel(r'Mass of 1st invisible body $m_1$ (in solar masses)', fontsize=font)
-			ax.set_ylabel(r'Mass of 2st invisible body $m_2$ (in solar masses)', fontsize=font)
+			ax.set_yticklabels(np.linspace(0, self.max_masses[1] * 1e3, count))
+			ax.set_xlabel(r'Mass of 1st invisible body $m_1$ (in solar masses $\times 10^{-3}$)', fontsize=font)
+			ax.set_ylabel(r'Mass of 2st invisible body $m_2$ (in solar masses $\times 10^{-3}$)', fontsize=font)
 			ax.tick_params(axis='both', which='major', labelsize=font)
 			ax.tick_params(axis='both', which='minor', labelsize=font)
 			if filename is not None:
