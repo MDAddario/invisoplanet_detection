@@ -487,10 +487,3 @@ class Likelihood:
 
 		else:
 			Likelihood.hardcoded_error_message()
-
-
-"""
-GOALS:
-	- Make functions used in the plotting stand-alone methods
-	- Add unit tests
-"""
