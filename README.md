@@ -7,7 +7,9 @@ The program was found to be quite sensitive to unknown masses that caused only s
 Provided with the Sun and a few other known planets from the solar system, it was found to be possible to get a good approximation on the mass of a planet in the system made "invisible" for the purpose of the simulation. 
 Given knowledge of the planets in the solar systems, and reasonable constraints on the prior distribution, the mass of the sun was determined to **0.3% of the actual**.
 
-![Alt Text](assets/solar_system_animation.gif)
+![Gif failed to load](assets/solar-system-animation.gif)
+![Gif failed to load](assets/jup_jupmoon.gif)
+![Gif failed to load](assets/binary.gif)
 
 __Program dependencies__
 
