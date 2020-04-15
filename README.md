@@ -24,6 +24,8 @@ __Description of file directories__
 The following is a breakdown of all the files present in the GitHub repository. 
 All of the files in the repository are intended for the final submission.
 
++ `final_report/` - _Contains the manuscript for the final report submission_
+
 + `invisoplanet_detection/` - _Module containing all of the source code_
 
     + `animations/` - _Submodule for running animations_
@@ -37,8 +39,6 @@ All of the files in the repository are intended for the final submission.
     + `statistics/` - _Submodule for performing statistics_
 
         + `tests/` - _Unit tests for statistics submodule_
-
-+ `final_report/` - _Contains the manuscript for the final report submission_
 
 + `preplanning/` - _Contains all of the brainstorms and initial project planning_
 
