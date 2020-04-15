@@ -288,7 +288,7 @@ def kepler_check(Niter, dt, orbit_params, sim_pos):
     y_arr = []
 
     # kepler problem has constant angular velocity, so update by omega*dt each time
-    for i in np.linspace(0, Niter * dt, Niter + 1):
+    for i in np.linspace(0, Niter * dt, Niter):
 
         theta = i * omega + theta_sim # angle as a function of time
         r = a * (1 - ecc**2) / (1 + ecc*np.cos(theta - theta_peri)) # radius as a function of angle
