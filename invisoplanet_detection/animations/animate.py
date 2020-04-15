@@ -156,6 +156,13 @@ def planet_creator(position_data, radius, path_radius, color, num=3):
 # Create the tube path
 def create_tube_path(position_data, radius, num, color):
 
+	num_vals = 500
+	step = int(len(position_data) / num_vals)
+
+	indices = np.arange(len(position_data))
+
+	pos_data_trim = np.asarray(position_data)[indices]
+
 	# Create the circle orthog to a normal vector
 	def circle_from_normal(normal, center, radius, num):
 
@@ -193,11 +200,11 @@ def create_tube_path(position_data, radius, num, color):
 	indices = []
 	cur_num = 0
 
-	for i in range(len(position_data) - 1):
+	for i in range(len(pos_data_trim) - 1):
 
 		# Compute the verts and norms for the next set of points
-		normal = position_data[i+1] - position_data[i]
-		new_verts, new_norms = circle_from_normal(normal, position_data[i], radius, num)
+		normal = pos_data_trim[i+1] - pos_data_trim[i]
+		new_verts, new_norms = circle_from_normal(normal, pos_data_trim[i], radius, num)
 
 		# Append to the master list
 		vertices.extend(new_verts)
@@ -305,7 +312,7 @@ class Planet:
 		self.frame += 1
 
 		# Wrap frame counter
-		if self.frame == len(self.position_data):
+		if self.frame >= len(self.position_data):
 			self.frame = 0
 
 
