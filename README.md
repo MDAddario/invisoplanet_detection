@@ -24,6 +24,8 @@ __Description of file directories__
 The following is a breakdown of all the files present in the GitHub repository. 
 All of the files in the repository are intended for the final submission.
 
++ `assets/` - Folder containing sample animation .gif for the README.md
+
 + `final_report/` - _Contains the manuscript for the final report submission_
 
 + `invisoplanet_detection/` - _Module containing all of the source code_
@@ -48,6 +50,8 @@ All of the files in the repository are intended for the final submission.
 
 + `generate_animation.py` - _Main code used to generate animations_
 
-+ `assets/` - Folder containing sample animation .gif for the README.md
-
 The remaining files `.gitignore` and `README.md` are typical.
+
+__Authors__
+
+The three authors for this work are Delaney Dunne (DD), Michael Lindner-D'Addario (MLD), and Gabriella Morin (GM).
