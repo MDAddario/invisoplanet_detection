@@ -1,0 +1,125 @@
+PN-body simulation code flow:
+
+- SIMPLE DETERMINISTIC HAMILTONIAN vs MC?
+- DO WE ASSUME WE'RE STARTING IN EQM?
+    - yes: any observations we have of grav. bound bodies will be at some point far into their evolution, so nature will
+      have equilibrated them for us already
+    - actually just ignore this - just do a straightforward pair force calculation
+
+DEFINE unit for mass, position RIGHT AWAY
+    - earth masses (0.1 - 10 0000)?
+    - AU for distance
+
+SYSTEM OF 4n FIRST ORDER DIFFERENTIAL EQUATIONS, WITH 4n INITIAL CONDITIONS
+
+
+
+Body: class to hold info abt BODIES
+    - position (as an x,y vector)
+    - velocity (as an x,y vector)
+    - mass (in earth masses)
+    - scalardistance: calculate the scalar distance between this body and a single other body
+    - recenter: change the origin of the coord system the body vectors are defined in terms of
+    - pairforce: calculate the force on this body from a single other body
+    - totalforce: calculate the force on this body from all other bodies using the previous function?
+
+PhaseSpace: class to hold PHASE SPACE as a whole for an instant in time
+    - to initialize, needs a list of body objects, and a time at which they're defined
+    - arrayvals: returns three separate arrays - one containing the positions of all bodies (2xN),
+      one containing their velocities (2xN), and one containing their masses (N)
+    - findCoM: returns a body object containing the position and velocity of the CoM of the phase
+      space, and its total mass
+    - CoM:recenter adjusts all phase space coordinates to be centered around the CoM
+    - psprint: takes two file pointers, prints the current time and positions of all ps elements to
+      the two separate files
+
+
+
+initialize(icfile, filenames):
+
+    PASS: file name of a file structured like the README containing the ICs
+
+    RETURN: a phase space object with all information correctly stored and centered around the
+            CoM, file pointers to the output t and x files
+
+    - opens the file, reads ICs in, closes it
+    - stores information for each body in body objects
+    - passes a list of all body objects, and the time zero to a phase space object
+    - recenters the phase space object around the CoM
+    - opens files in filenames to hold t and pos information and prints the initial ps data to them
+
+
+    TESTS:
+        - make sure information is stored in every phase space coordinate and mass (check for NaNs)
+        - make sure none of the bodies are stacked on top of each other
+        - make sure none of the bodies are wildly far away from all of the other ones
+
+
+iterate(space_i, dt)
+
+    PASS: phase space of all bodies, time interval dt
+
+    RETURN: phase space of all bodies after they have evolved for the duration of the time interval
+
+    - calculates the acceleration a of each body due to the forces acting on it of all other bodies
+    - using the initial position and velocity, and assuming the acceleration is locally linear, calculate
+      the position and velocity of each body after an acceleration a for a time dt:
+
+      a = F/m
+      xf = xi + vi*dt + 1/2 a*dt^2
+      vf = vi + a*dt
+      tf = ti + dt
+
+    - returns a new phase space object with the final positions and velocities of each body, and the final time
+
+
+    NOTES:
+    - gravitational potential has singularity at r_ij=0 - need to soften it somehow (usually w a small number epsilon
+          in the denominator sqrt
+    - system is chaotic - eqm is not stable but we see stability so some sort of eqm has been reached?
+            - skip past this by again assuming the universe has put the bodies into eqm for us
+    - this step is going to need to be optimized as much as possible
+    - boundary conditions?
+
+
+    TESTS:
+        - check for NaNs
+        - make sure none of the bodies are stacked on top of each other
+        - make sure none of the masses have changed
+        - make sure none of the coordinates are identical to what they were before
+        - check that the CoM has not moved
+        - calculate total energy before and after iterating, make sure it hasn't changed significantly
+        - calculate angular momentum before and after iterating, make sure it hasn't changed significantly
+
+
+simulate(space_i, Niter, dt, outfiles)
+
+    PASS: initial phase space, number of iterations, time interval dt
+
+    RETURN: final phase space after iterating N iter times
+
+    - just loop through the single iteration repeatedly
+    - after each step, print the time and position information to a file
+
+    TESTS:
+        - check for NaNs
+        - check a file is created
+        - make sure none of the bodies are stacked on top of each other
+        - make sure none of the bodies are stacked on top of each other
+        - make sure none of the masses have changed
+        - make sure none of the coordinates are identical to what they were before
+        - check that the CoM has not moved
+        - calculate total energy before and after iterating, make sure it hasn't changed significantly
+        - calculate angular momentum before and after iterating, make sure it hasn't changed significantly
+        - make sure none of the bodies have run away to infinity
+
+        then test that it actually works:
+            - first test of complete simulation: kepler problem (single planet orbiting around very massive sun)
+s that step from the parent class, with further specifications
+
+
+
+conditions for a binary:
+- for m1 = m2 = 1
+- a = 5
+p = sqrt(125 * 2 * pi^2 / G) = 2*pi/omega
