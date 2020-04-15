@@ -51,3 +51,7 @@ All of the files in the repository are intended for the final submission.
 + `generate_animation.py` - _Main code used to generate animations_
 
 The remaining files `.gitignore` and `README.md` are typical.
+
+__Authors__
+
+The three authors for this work are Delaney Dunne (DD), Michael Lindner-D'Addario (MLD), and Gabriella Morin (GM).
