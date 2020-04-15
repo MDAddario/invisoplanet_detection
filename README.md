@@ -48,4 +48,6 @@ All of the files in the repository are intended for the final submission.
 
 + `generate_animation.py` - _Main code used to generate animations_
 
++ `assets/` - Folder containing sample animation .gif for the README.md
+
 The remaining files `.gitignore` and `README.md` are typical.
